@@ -1,4 +1,4 @@
-defmodule ChessWeb.PageHTML do
+defmodule ChessWeb.HomePageHTML do
   @moduledoc """
   This module contains pages rendered by PageController.
 
@@ -6,5 +6,5 @@ defmodule ChessWeb.PageHTML do
   """
   use ChessWeb, :html
 
-  embed_templates "page_html/*"
+  embed_templates "templates/*"
 end

@@ -1,4 +1,4 @@
-defmodule ChessWeb.PageController do
+defmodule ChessWeb.HomePageController do
   use ChessWeb, :controller
 
   def home(conn, _params) do
