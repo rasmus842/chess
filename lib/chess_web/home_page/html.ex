@@ -6,5 +6,5 @@ defmodule ChessWeb.HomePageHTML do
   """
   use ChessWeb, :html
 
-  embed_templates "templates/*"
+  embed_templates "./*"
 end
