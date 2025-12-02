@@ -19,6 +19,10 @@ defmodule ChessWeb.Router do
     pipe_through :browser
 
     get "/", HomePageController, :home
+
+    if Application.compile_env(:chess, :is_dev) do
+      live "/demo", DemoLiveView
+    end
   end
 
   # Other scopes may use custom stacks.

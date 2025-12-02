@@ -1,5 +1,8 @@
 import Config
 
+config :chess,
+  is_dev: true
+
 # Configure your database
 config :chess, Chess.Repo,
   username: "postgres",
