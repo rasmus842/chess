@@ -15,7 +15,7 @@ defmodule Chess.Game.Validator.PawnMoveValidator do
 
     case {current_piece, target_piece, diff} do
       {{_, kind}, _, _} when kind != :pawn ->
-        raise "Tried to validate #{kind} using pawn validator"
+        {:error, "Tried to validate #{kind} using pawn validator"}
 
       {{:white, _}, {:black, _}, {f, r}} when abs(f) == 1 and r == 1 ->
         :ok
