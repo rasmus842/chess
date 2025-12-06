@@ -5,6 +5,7 @@ defmodule Chess.Game.MoveCase do
     quote do
       use Chess.Game.Types
       alias Chess.Game.Move
+      alias Chess.Game.Props
 
       @doc """
       Helper method for tests. Assume that the player making the
@@ -14,7 +15,7 @@ defmodule Chess.Game.MoveCase do
       @spec test_make_move(board(), move()) :: {:ok, game_state() | error()}
       def test_make_move(board, {origin, _destination} = move) when is_map(board) do
         {color, _kind} = _piece = Map.get(board, origin)
-        game_state = {%{player: color}, board}
+        game_state = {%Props{player: color}, board}
         action = {game_state, move, color}
         Move.make_move(action)
       end
@@ -34,16 +35,14 @@ defmodule Chess.Game.MoveCase do
       @spec chain_moves(game_state(), [move()]) :: game_state() | error()
       def chain_moves(state, []), do: state
 
-      def chain_moves({%{player: player}, board} = state, [move | rest])
-          when player == :white or (player == :black and is_map(board)) do
+      def chain_moves(state = {%Props{player: player}, board}, [move | rest]) do
         action = {state, move, player}
 
         case Move.make_move(action) do
           {:error, message} = err when is_binary(message) ->
             err
 
-          {%{player: new_player}, board} = new_state
-          when new_player != player and new_player in [:white, :black] and is_map(board) ->
+          new_state ->
             chain_moves(new_state, rest)
         end
       end

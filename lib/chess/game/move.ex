@@ -27,10 +27,6 @@ defmodule Chess.Game.Move do
       {:error, message} ->
         Logger.debug("Unable to make make: " <> message)
         {:error, message}
-
-      err ->
-        Logger.error("Unexpected error: #{inspect(err)}")
-        {:error, "Unexpected error"}
     end
   end
 end

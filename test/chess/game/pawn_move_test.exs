@@ -43,9 +43,14 @@ defmodule Chess.Game.PawnMoveTest do
       assert_move_is_error(board, move)
     end
 
-    test "pawn jump", %{board: board} do
+    test "White pawn jump", %{board: board} do
       move = {{?a, 2}, {?a, 4}}
-      assert_move_is_error(board, move)
+      assert_move_is_ok(board, move)
+    end
+
+    test "Black pawn jump", %{board: board} do
+      move = {{?a, 7}, {?a, 5}}
+      assert_move_is_ok(board, move)
     end
 
     test "pawn cannot jump if blocked", %{board: board} do
@@ -60,7 +65,7 @@ defmodule Chess.Game.PawnMoveTest do
         {?a, 2} => {:white, :pawn},
         {?b, 4} => {:black, :pawn},
         {?d, 4} => {:white, :pawn},
-        {?f, 5} => {:black, :pawn},
+        {?e, 5} => {:black, :pawn},
         {?h, 4} => {:white, :pawn},
         {?h, 5} => {:black, :pawn}
       }
@@ -69,12 +74,12 @@ defmodule Chess.Game.PawnMoveTest do
     end
 
     test "White pawn takes black piece", %{board: board} do
-      move = {{?d, 4}, {?f, 5}}
+      move = {{?d, 4}, {?e, 5}}
       assert_move_is_ok(board, move)
     end
 
     test "Black pawn takes white piece", %{board: board} do
-      move = {{?f, 5}, {?d, 4}}
+      move = {{?e, 5}, {?d, 4}}
       assert_move_is_ok(board, move)
     end
 
