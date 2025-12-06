@@ -31,6 +31,45 @@ defmodule Chess.Game.Utils do
     end
   end
 
+  @spec get_path(board(), move()) :: [cell()]
+  def get_path(_board, _move = {current, target}) when current == target do
+    [target]
+  end
+
+  def get_path(board, _move = {origin = {f1, r1}, target = {f2, r2}}) do
+    next_file =
+      cond do
+        f2 > f1 -> f1 + 1
+        f2 < f1 -> f1 - 1
+        f2 == f1 -> f1
+      end
+
+    next_rank =
+      cond do
+        r2 > r1 -> r1 + 1
+        r2 < r1 -> r1 - 1
+        r2 == r1 -> r1
+      end
+
+    next_tile = {next_file, next_rank}
+    [origin | get_path(board, {next_tile, target})]
+  end
+
+  @doc """
+  first and last element are excluded from check because they
+  are the origin and target.
+  At origin is the piece that is being moved.
+  At target is potentially a piece to be taken.
+  """
+  @spec path_obstructed?(board(), [cell()]) :: boolean()
+  def path_obstructed?(board, path) do
+    path
+    |> tl()
+    |> Enum.drop(-1)
+    |> Enum.map(&Map.get(board, &1))
+    |> Enum.any?()
+  end
+
   @spec initial_position() :: board()
   def initial_position() do
     ?a..?h
