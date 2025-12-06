@@ -3,8 +3,9 @@ defmodule Chess.Game.Validator.MoveValidator do
   use Chess.Game.Types
   alias Chess.Game.Action
   alias Chess.Game.Validator.PawnMoveValidator
-  alias(Chess.Game.Validator.KnightMoveValidator)
-  alias(Chess.Game.Validator.RookMoveValidator)
+  alias Chess.Game.Validator.KnightMoveValidator
+  alias Chess.Game.Validator.RookMoveValidator
+  alias Chess.Game.Validator.BishopMoveValidator
   alias Chess.Game.Validator.CorrectColors
   alias Chess.Game.Validator.CorrectPlayer
   alias Chess.Game.Utils
@@ -71,6 +72,7 @@ defmodule Chess.Game.Validator.MoveValidator do
       {_, :pawn} -> {:ok, PawnMoveValidator}
       {_, :knight} -> {:ok, KnightMoveValidator}
       {_, :rook} -> {:ok, RookMoveValidator}
+      {_, :bishop} -> {:ok, BishopMoveValidator}
       {_, kind} -> {:error, "Missing validator for kind: #{kind}"}
     end
   end
