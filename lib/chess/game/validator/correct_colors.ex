@@ -1,16 +1,15 @@
 defmodule Chess.Game.Validator.CorrectColors do
   @behaviour Chess.Game.Validator.Spec
   alias Chess.Game.Props
+  alias Chess.Game.Action
   alias Chess.Game.Utils
 
   @impl true
-  def validate(
-        _action = {
-          _game_state = {%Props{player: current_player}, board},
-          _move = {current, target},
-          player
-        }
-      )
+  def validate(%Action{
+        game_state: {%Props{player: current_player}, board},
+        move: {current, target},
+        params: %{player: player}
+      })
       when player == current_player do
     current_piece = Map.get(board, current)
     target_piece = Map.get(board, target)

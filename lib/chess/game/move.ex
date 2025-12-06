@@ -1,11 +1,12 @@
 defmodule Chess.Game.Move do
   require Logger
   use Chess.Game.Types
+  alias Chess.Game.Action
   alias Chess.Game.Utils
   alias Chess.Game.Props
   alias Chess.Game.Validator.MoveValidator
 
-  @spec make_move(game_action()) :: {:ok, game_state()} | error()
+  @spec make_move(Action.t()) :: {:ok, game_state()} | error()
   def make_move(action) do
     with :ok <- MoveValidator.validate(action),
          new_board <- update_board(action),
@@ -18,27 +19,18 @@ defmodule Chess.Game.Move do
     end
   end
 
-  @spec update_board(game_action()) :: board()
-  defp update_board(
-         _action = {
-           _game_state = {_props, board},
-           _move = {origin, target},
-           _player
-         }
-       ) do
+  @spec update_board(Action.t()) :: board()
+  defp update_board(%Action{
+         game_state: {_props, board},
+         move: {origin, target}
+       }) do
     board
     |> Map.put(target, Map.get(board, origin))
     |> Map.put(origin, nil)
   end
 
-  @spec update_props(game_action()) :: Props.t()
-  defp update_props(
-         action = {
-           _game_state = {props, _board},
-           _move = {_origin, _target},
-           _player
-         }
-       ) do
+  @spec update_props(Action.t()) :: Props.t()
+  defp update_props(action = %Action{game_state: {props, _board}}) do
     props
     |> update_player()
     |> update_en_passant_cell(action)
@@ -49,13 +41,12 @@ defmodule Chess.Game.Move do
     Map.update!(props, :player, &Utils.other_player(&1))
   end
 
-  @spec update_en_passant_cell(Props.t(), game_action()) :: Props.t()
+  @spec update_en_passant_cell(Props.t(), Action.t()) :: Props.t()
   defp update_en_passant_cell(
          props,
-         _action = {
-           _game_state = {_props, board},
-           _move = {origin = {f1, r1}, _target = {f2, r2}},
-           _player
+         %Action{
+           game_state: {_props, board},
+           move: {origin = {f1, r1}, _target = {f2, r2}}
          }
        ) do
     piece = Map.get(board, origin)

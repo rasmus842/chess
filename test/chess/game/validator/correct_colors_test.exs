@@ -1,6 +1,7 @@
 defmodule Chess.Game.Validator.CorrectColorsTest do
   use ExUnit.Case, async: true
   alias Chess.Game.Props
+  alias Chess.Game.Action
   alias Chess.Game.Validator.CorrectColors
 
   setup do
@@ -14,20 +15,32 @@ defmodule Chess.Game.Validator.CorrectColorsTest do
   end
 
   test "Player cannot move a piece that does not exist", %{board: board} do
-    state = {%Props{player: :white}, board}
-    move = {{?a, 1}, {?a, 7}}
-    assert {:error, _message} = CorrectColors.validate({state, move, :white})
+    action = %Action{
+      game_state: {%Props{player: :white}, board},
+      move: {{?a, 1}, {?a, 7}},
+      params: %{player: :white}
+    }
+
+    assert {:error, _message} = CorrectColors.validate(action)
   end
 
   test "Player cannot move another player's piece", %{board: board} do
-    state = {%Props{player: :white}, board}
-    move = {{?a, 7}, {?a, 2}}
-    assert {:error, _message} = CorrectColors.validate({state, move, :white})
+    action = %Action{
+      game_state: {%Props{player: :white}, board},
+      move: {{?a, 7}, {?a, 2}},
+      params: %{player: :white}
+    }
+
+    assert {:error, _message} = CorrectColors.validate(action)
   end
 
   test "Player cannot take his own piece", %{board: board} do
-    state = {%Props{player: :white}, board}
-    move = {{?a, 2}, {?c, 2}}
-    assert {:error, _message} = CorrectColors.validate({state, move, :white})
+    action = %Action{
+      game_state: {%Props{player: :white}, board},
+      move: {{?a, 2}, {?c, 2}},
+      params: %{player: :white}
+    }
+
+    assert {:error, _message} = CorrectColors.validate(action)
   end
 end

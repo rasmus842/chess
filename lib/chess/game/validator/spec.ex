@@ -1,5 +1,6 @@
 defmodule Chess.Game.Validator.Spec do
   use Chess.Game.Types
+  alias Chess.Game.Action
 
-  @callback validate(game_action()) :: :ok | error()
+  @callback validate(Action.t()) :: :ok | error()
 end

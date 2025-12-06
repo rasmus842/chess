@@ -1,6 +1,7 @@
 defmodule Chess.Game.Validator.MoveValidator do
   @behaviour Chess.Game.Validator.Spec
   use Chess.Game.Types
+  alias Chess.Game.Action
   alias Chess.Game.Validator.PawnMoveValidator
   alias Chess.Game.Validator.CorrectColors
   alias Chess.Game.Validator.CorrectPlayer
@@ -8,10 +9,9 @@ defmodule Chess.Game.Validator.MoveValidator do
 
   @impl true
   def validate(
-        action = {
-          _game_state = {_props, board},
-          _move = {origin, _target},
-          _player
+        action = %Action{
+          game_state: {_props, board},
+          move: {origin, _target}
         }
       ) do
     with :ok <- CorrectPlayer.validate(action),
@@ -33,14 +33,11 @@ defmodule Chess.Game.Validator.MoveValidator do
     end
   end
 
-  @spec validate_path(game_action()) :: :ok | error()
-  defp validate_path(
-         _action = {
-           _game_state = {_props, board},
-           move = {origin, _target},
-           _player
-         }
-       ) do
+  @spec validate_path(Action.t()) :: :ok | error()
+  defp validate_path(%Action{
+         game_state: {_props, board},
+         move: move = {origin, _target}
+       }) do
     case Map.get(board, origin) do
       {_, :knigth} ->
         :ok
@@ -56,15 +53,12 @@ defmodule Chess.Game.Validator.MoveValidator do
     end
   end
 
-  @spec get_piece_validator(game_action()) :: {:ok, module()} | error()
+  @spec get_piece_validator(Action.t()) :: {:ok, module()} | error()
   defp(
-    get_piece_validator(
-      _action = {
-        _game_state = {_props, board},
-        _move = {current, _target},
-        _player
-      }
-    )
+    get_piece_validator(%Action{
+      game_state: {_props, board},
+      move: {current, _target}
+    })
   ) do
     case Map.get(board, current) do
       {_, :pawn} -> {:ok, PawnMoveValidator}

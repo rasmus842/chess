@@ -17,7 +17,8 @@ defmodule Chess.Application do
       # Start a worker by calling: Chess.Worker.start_link(arg)
       # {Chess.Worker, arg},
       # Start to serve requests, typically the last entry
-      ChessWeb.Endpoint
+      ChessWeb.Endpoint,
+      {DynamicSupervisor, name: ChessGameSupervisor}
     ]
 
     # See https://hexdocs.pm/elixir/Supervisor.html

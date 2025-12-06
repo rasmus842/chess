@@ -1,16 +1,12 @@
 defmodule Chess.Game.Validator.PawnMoveValidator do
   @behaviour Chess.Game.Validator.Spec
-  alias Chess.Game.Props
-  alias Chess.Game.Utils
+  alias Chess.Game.Action
 
   @impl true
-  def validate(
-        action = {
-          _game_state = {props, board},
-          _move = {current = {f1, r1}, target = {f2, r2}},
-          _player
-        }
-      ) do
+  def validate(%Action{
+        game_state: {props, board},
+        move: {current = {f1, r1}, target = {f2, r2}}
+      }) do
     current_piece = Map.get(board, current)
     target_piece = Map.get(board, target)
     diff = {f2 - f1, r2 - r1}

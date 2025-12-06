@@ -14,7 +14,6 @@ defmodule Chess.Game.Types do
       @type game_state :: {Chess.Game.Props.t(), board()}
 
       @type move :: {cell(), cell()}
-      @type game_action :: {game_state(), move(), player()}
       @type error :: {:error, String.t()}
     end
   end
