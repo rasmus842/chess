@@ -15,6 +15,7 @@ defmodule Chess.Game.Validator.MoveValidator do
         }
       ) do
     with :ok <- CorrectPlayer.validate(action),
+         :ok <- validate_moves_in_bounds(action),
          :ok <- CorrectColors.validate(action),
          :ok <- validate_piece_exists(board, origin),
          :ok <- validate_path(action),
@@ -23,6 +24,17 @@ defmodule Chess.Game.Validator.MoveValidator do
       :ok
     else
       err -> err
+    end
+  end
+
+  @spec validate_moves_in_bounds(Action.t()) :: :ok | error()
+  defp validate_moves_in_bounds(%Action{
+         move: move
+       }) do
+    if Utils.move_in_bounds?(move) do
+      :ok
+    else
+      {:error, "Move not in bounds"}
     end
   end
 

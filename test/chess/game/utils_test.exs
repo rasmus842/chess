@@ -45,6 +45,18 @@ defmodule Chess.Game.UtilsTest do
     end
   end
 
+  test "Move in bounds" do
+    assert move_in_bounds?({{?a, 1}, {?c, 3}})
+  end
+
+  test "Move out of bounds 1" do
+    refute move_in_bounds?({{?a, 1}, {?j, 1}})
+  end
+
+  test "Move out of bounds 2" do
+    refute move_in_bounds?({{?a, 0}, {?j, 1}})
+  end
+
   describe "Path tests -" do
     setup do
       board = %{

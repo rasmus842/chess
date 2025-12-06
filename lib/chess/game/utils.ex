@@ -70,6 +70,14 @@ defmodule Chess.Game.Utils do
     |> Enum.any?()
   end
 
+  @spec move_in_bounds?(move()) :: boolean()
+  def move_in_bounds?(_move = {_origin = {f1, r1}, _target = {f2, r2}}) do
+    f1 >= ?a and f1 <= ?h and
+      r1 >= 1 and r1 <= 8 and
+      f2 >= ?a and f2 <= ?h and
+      r2 >= 1 and r2 <= 8
+  end
+
   @spec initial_position() :: board()
   def initial_position() do
     ?a..?h
