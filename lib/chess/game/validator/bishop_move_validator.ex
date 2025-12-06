@@ -15,7 +15,7 @@ defmodule Chess.Game.Validator.BishopMoveValidator do
   end
 
   @spec validate_bishop_move(Action.t()) :: :ok | error()
-  defp validate_bishop_move(%Action{
+  def validate_bishop_move(%Action{
          move: {_current = {f1, r1}, _target = {f2, r2}}
        }) do
     case {abs(f2 - f1), abs(r2 - r1)} do

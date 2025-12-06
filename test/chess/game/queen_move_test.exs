@@ -55,16 +55,16 @@ defmodule Chess.Game.QueenMoveTest do
     end
 
     test "Black queen takes white queen", %{board: board} do
-      state = {:black, board}
+      state = {%Props{player: :black}, board}
 
       moves = [
         _move_black_queen = {{?a, 8}, {?c, 8}},
         _move_white_queen = {{?a, 1}, {?c, 1}},
-        _black_queen_takes = {{?a, 8}, {?c, 8}}
+        _black_queen_takes = {{?c, 8}, {?c, 1}}
       ]
 
-      assert {:ok, final_board} = chain_moves(state, moves)
-      assert Map.get(final_board, {?c, 8}) == {:black, :queen}
+      assert {:ok, {_props, final_board}} = chain_moves(state, moves)
+      assert Map.get(final_board, {?c, 1}) == {:black, :queen}
     end
   end
 
@@ -122,12 +122,12 @@ defmodule Chess.Game.QueenMoveTest do
       {:ok, %{board: board}}
     end
 
-    test "Queen bishop takes", %{board: board} do
+    test "Queen bishop takes 1", %{board: board} do
       move = {{?c, 1}, {?f, 4}}
       assert_move_is_ok(board, move)
     end
 
-    test "Queen bishop takes", %{board: board} do
+    test "Queen bishop takes 2", %{board: board} do
       move = {{?c, 8}, {?f, 5}}
       assert_move_is_ok(board, move)
     end
