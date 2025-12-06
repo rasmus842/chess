@@ -67,6 +67,7 @@ defmodule Chess.Game.Validator.MoveValidator do
     )
   ) do
     case Map.get(board, current) do
+      {_, :pawn} -> {:ok, PawnMoveValidator}
       {_, kind} -> {:error, "Missing validator for kind: #{kind}"}
     end
   end
