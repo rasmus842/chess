@@ -4,6 +4,7 @@ defmodule Chess.Game.Validator.MoveValidator do
   alias Chess.Game.Action
   alias Chess.Game.Validator.PawnMoveValidator
   alias(Chess.Game.Validator.KnightMoveValidator)
+  alias(Chess.Game.Validator.RookMoveValidator)
   alias Chess.Game.Validator.CorrectColors
   alias Chess.Game.Validator.CorrectPlayer
   alias Chess.Game.Utils
@@ -17,9 +18,8 @@ defmodule Chess.Game.Validator.MoveValidator do
       ) do
     with :ok <- CorrectPlayer.validate(action),
          :ok <- validate_moves_in_bounds(action),
-         :ok <- CorrectColors.validate(action),
          :ok <- validate_piece_exists(board, origin),
-         :ok <- validate_path(action),
+         :ok <- CorrectColors.validate(action),
          {:ok, piece_validator} <- get_piece_validator(action),
          :ok <- piece_validator.validate(action) do
       :ok
@@ -41,28 +41,22 @@ defmodule Chess.Game.Validator.MoveValidator do
 
   defp validate_piece_exists(board, origin) do
     case Map.get(board, origin) do
-      nil -> {:error, "No piece exists at #{origin}"}
+      nil -> {:error, "No piece exists at #{Utils.cell_to_string(origin)}"}
       _ -> :ok
     end
   end
 
   @spec validate_path(Action.t()) :: :ok | error()
-  defp validate_path(%Action{
-         game_state: {_props, board},
-         move: move = {origin, _target}
-       }) do
-    case Map.get(board, origin) do
-      {_, :knigth} ->
-        :ok
+  def validate_path(%Action{
+        game_state: {_props, board},
+        move: move
+      }) do
+    path = Utils.get_path(board, move)
 
-      _ ->
-        path = Utils.get_path(board, move)
-
-        if Utils.path_obstructed?(board, path) do
-          {:error, "Path is obstructed"}
-        else
-          :ok
-        end
+    if Utils.path_obstructed?(board, path) do
+      {:error, "Path is obstructed"}
+    else
+      :ok
     end
   end
 
@@ -76,6 +70,7 @@ defmodule Chess.Game.Validator.MoveValidator do
     case Map.get(board, current) do
       {_, :pawn} -> {:ok, PawnMoveValidator}
       {_, :knight} -> {:ok, KnightMoveValidator}
+      {_, :rook} -> {:ok, RookMoveValidator}
       {_, kind} -> {:error, "Missing validator for kind: #{kind}"}
     end
   end
