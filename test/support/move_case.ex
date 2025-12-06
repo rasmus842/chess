@@ -33,17 +33,14 @@ defmodule Chess.Game.MoveCase do
       end
 
       @spec chain_moves(game_state(), [move()]) :: game_state() | error()
-      def chain_moves(state, []), do: state
+      def chain_moves(state, []), do: {:ok, state}
 
       def chain_moves(state = {%Props{player: player}, board}, [move | rest]) do
         action = {state, move, player}
 
         case Move.make_move(action) do
-          {:error, message} = err when is_binary(message) ->
-            err
-
-          new_state ->
-            chain_moves(new_state, rest)
+          {:error, message} = err -> err
+          {:ok, new_state} -> chain_moves(new_state, rest)
         end
       end
     end

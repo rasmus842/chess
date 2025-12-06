@@ -8,7 +8,7 @@ defmodule Chess.Game.Types do
 
       @type file :: ?a | ?b | ?c | ?d | ?e | ?f | ?g | ?h
       @type rank :: 1..8
-      @type cell :: {file, rank}
+      @type cell :: {file(), rank()}
       @type board :: %{cell() => piece() | nil}
 
       @type game_state :: {Chess.Game.Props.t(), board()}

@@ -67,7 +67,9 @@ defmodule Chess.Game.PawnMoveTest do
         {?d, 4} => {:white, :pawn},
         {?e, 5} => {:black, :pawn},
         {?h, 4} => {:white, :pawn},
-        {?h, 5} => {:black, :pawn}
+        {?h, 5} => {:black, :pawn},
+        {?a, 7} => {:black, :pawn},
+        {?b, 5} => {:white, :pawn}
       }
 
       {:ok, %{board: board}}
@@ -88,12 +90,42 @@ defmodule Chess.Game.PawnMoveTest do
       assert_move_is_error(board, move)
     end
 
+    test "En passant - white pawn takes black", %{board: board} do
+      state =
+        {%Props{player: :black}, board}
+
+      moves = [
+        _black_pawn_jumps = {{?a, 7}, {?a, 5}},
+        _white_pawn_takes = {{?b, 5}, {?a, 6}}
+      ]
+
+      assert {:ok, _state} = chain_moves(state, moves)
+    end
+
     test "En passant - black pawn takes white", %{board: board} do
-      white_pawn_jumps = {{?a, 2}, {?a, 4}}
-      new_state = assert_move_is_ok(board, white_pawn_jumps)
-      assert {%{player: :black}, new_board} = new_state
-      black_pawn_takes = {{?b, 4}, {?a, 3}}
-      assert_move_is_ok(new_board, black_pawn_takes)
+      state =
+        {%Props{player: :white}, board}
+
+      moves = [
+        _white_pawn_jumps = {{?a, 2}, {?a, 4}},
+        _black_pawn_takes = {{?b, 4}, {?a, 3}}
+      ]
+
+      assert {:ok, _state} = chain_moves(state, moves)
+    end
+
+    test "En passant not possible afterwards", %{board: board} do
+      state =
+        {%Props{player: :black}, board}
+
+      moves = [
+        _black_pawn_jumps = {{?a, 7}, {?a, 5}},
+        _white_pawn_moves = {{?d, 4}, {?d, 5}},
+        _black_pawn_moves = {{?e, 5}, {?e, 4}},
+        _white_pawn_tries_en_passant = {{?b, 5}, {?a, 6}}
+      ]
+
+      assert {:error, _} = chain_moves(state, moves)
     end
   end
 end

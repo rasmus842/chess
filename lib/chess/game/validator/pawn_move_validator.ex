@@ -15,32 +15,36 @@ defmodule Chess.Game.Validator.PawnMoveValidator do
     target_piece = Map.get(board, target)
     diff = {f2 - f1, r2 - r1}
 
-    case {current_piece, target_piece, diff} do
-      {nil, _, _} ->
-        {:error, "No piece exist in current tile"}
+    en_passant? = target == Map.get(props, :en_passant_cell)
 
+    case {current_piece, target_piece, diff} do
       {{_, kind}, _, _} when kind != :pawn ->
         raise "Tried to validate #{kind} using pawn validator"
 
-      {_, nil, {f, _}} when f != 0 ->
-        {:error, "Pawn cannot change file if not taking"}
-
       {{:white, _}, {:black, _}, {f, r}} when abs(f) == 1 and r == 1 ->
+        :ok
+
+      {{:white, _}, nil, {f, r}}
+      when en_passant? and abs(f) == 1 and r == 1 ->
         :ok
 
       {{:black, _}, {:white, _}, {f, r}} when abs(f) == 1 and r == -1 ->
         :ok
 
-      {{:white, _}, nil, {_, r}} when r == 1 ->
+      {{:black, _}, nil, {f, r}}
+      when en_passant? and abs(f) == 1 and r == -1 ->
         :ok
 
-      {{:white, _}, nil, {_, r}} when r == 2 and r1 == 2 ->
+      {{:white, _}, nil, {f, r}} when f == 0 and r == 1 ->
         :ok
 
-      {{:black, _}, nil, {_, r}} when r == -1 ->
+      {{:white, _}, nil, {f, r}} when f == 0 and r == 2 and r1 == 2 ->
         :ok
 
-      {{:black, _}, nil, {_, r}} when r == -2 and r1 == 7 ->
+      {{:black, _}, nil, {f, r}} when f == 0 and r == -1 ->
+        :ok
+
+      {{:black, _}, nil, {f, r}} when f == 0 and r == -2 and r1 == 7 ->
         :ok
 
       _ ->
