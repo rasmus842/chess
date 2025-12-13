@@ -19,7 +19,7 @@ defmodule Chess.Game.KingCastlesTest do
 
     test "White castles king-side", %{board: board} do
       move = {{?e, 1}, {?g, 1}}
-      {_next_player, new_board} = assert_move_is_ok(board, move)
+      {_props, new_board} = assert_move_is_ok(board, move)
       assert Map.get(new_board, {?g, 1}) == {:white, :king}
       assert Map.get(new_board, {?f, 1}) == {:white, :rook}
     end
@@ -44,14 +44,14 @@ defmodule Chess.Game.KingCastlesTest do
     test "White castles queen-side", %{board: board} do
       altered_board = Map.put(board, {?d, 1}, nil)
       move = {{?e, 1}, {?c, 1}}
-      {_next_player, new_board} = assert_move_is_ok(altered_board, move)
+      {_props, new_board} = assert_move_is_ok(altered_board, move)
       assert Map.get(new_board, {?c, 1}) == {:white, :king}
       assert Map.get(new_board, {?d, 1}) == {:white, :rook}
     end
 
     test "Black castles king-side", %{board: board} do
       move = {{?e, 8}, {?g, 8}}
-      {_next_player, new_board} = assert_move_is_ok(board, move)
+      {_props, new_board} = assert_move_is_ok(board, move)
       assert Map.get(new_board, {?g, 8}) == {:black, :king}
       assert Map.get(new_board, {?f, 8}) == {:black, :rook}
     end
@@ -59,7 +59,7 @@ defmodule Chess.Game.KingCastlesTest do
     test "Black castles queen-side", %{board: board} do
       altered_board = Map.put(board, {?b, 8}, nil)
       move = {{?e, 8}, {?c, 8}}
-      {_next_player, new_board} = assert_move_is_ok(altered_board, move)
+      {_props, new_board} = assert_move_is_ok(altered_board, move)
       assert Map.get(new_board, {?c, 8}) == {:black, :king}
       assert Map.get(new_board, {?d, 8}) == {:black, :rook}
     end
@@ -72,35 +72,35 @@ defmodule Chess.Game.KingCastlesTest do
     test "Black cannot castle if path is checked", %{board: board} do
       altered_board = Map.put(board, {?e, 7}, {:white, :pawn})
       move = {{?e, 8}, {?g, 8}}
-      assert_move_is_error(board, move)
+      assert_move_is_error(altered_board, move)
     end
 
     test "Cannot castle if king already moved", %{board: board} do
-      initial_state = {%Props{player: :black}, board}
+      state = {%Props{player: :black}, board}
 
       moves = [
-        {{?e, 8}, {?e, 7}} = _move_black_king,
-        {{?a, 1}, {?a, 2}} = _move_white_rook,
-        {{?e, 7}, {?e, 8}} = _move_black_king_back,
-        {{?a, 2}, {?a, 1}} = _move_white_rook_back
+        _move_black_king = {{?e, 8}, {?e, 7}},
+        _move_white_rook = {{?a, 1}, {?a, 2}},
+        _move_black_king_back = {{?e, 7}, {?e, 8}},
+        _move_white_rook_back = {{?a, 2}, {?a, 1}}
       ]
 
-      assert {:ok, {_props, new_board}} = chain_moves(inital_state, moves)
+      assert {:ok, {_props, new_board}} = chain_moves(state, moves)
       try_black_king_side_castle = {{?e, 1}, {?g, 1}}
       assert_move_is_error(new_board, try_black_king_side_castle)
     end
 
     test "Cannot castle if rook already moved", %{board: board} do
-      initial_state = {%Props{player: :white}, board}
+      state = {%Props{player: :white}, board}
 
       moves = [
-        {{?h, 1}, {?h, 2}} = _move_white_rook,
-        {{?e, 8}, {?d, 8}} = _move_black_king,
-        {{?h, 2}, {?h, 1}} = _move_white_rook_back,
-        {{?d, 8}, {?e, 8}} = _move_black_king_back
+        _move_white_rook = {{?h, 1}, {?h, 2}}, 
+        _move_black_king = {{?e, 8}, {?d, 8}}, 
+        _move_white_rook_back = {{?h, 2}, {?h, 1}}, 
+        _move_black_king_back = {{?d, 8}, {?e, 8}}
       ]
 
-      assert {:ok, {_props, new_board}} = chain_moves(inital_state, moves)
+      assert {:ok, {_props, new_board}} = chain_moves(state, moves)
       try_white_king_side_castle = {{?e, 1}, {?g, 1}}
       assert_move_is_error(new_board, try_white_king_side_castle)
     end

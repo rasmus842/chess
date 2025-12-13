@@ -7,6 +7,7 @@ defmodule Chess.Game.Validator.MoveValidator do
   alias Chess.Game.Validator.RookMoveValidator
   alias Chess.Game.Validator.BishopMoveValidator
   alias Chess.Game.Validator.QueenMoveValidator
+  alias Chess.Game.Validator.KingMoveValidator
   alias Chess.Game.Validator.CorrectColors
   alias Chess.Game.Validator.CorrectPlayer
   alias Chess.Game.Utils
@@ -75,6 +76,7 @@ defmodule Chess.Game.Validator.MoveValidator do
       {_, :rook} -> {:ok, RookMoveValidator}
       {_, :bishop} -> {:ok, BishopMoveValidator}
       {_, :queen} -> {:ok, QueenMoveValidator}
+      {_, :king} -> {:ok, KingMoveValidator}
       {_, kind} -> {:error, "Missing validator for kind: #{kind}"}
     end
   end

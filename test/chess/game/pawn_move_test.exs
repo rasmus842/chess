@@ -1,5 +1,6 @@
 defmodule Chess.Game.PawnMoveTest do
   use Chess.Game.MoveCase
+  import Chess.Game.Move, only: [make_move: 1]
 
   describe "Pawn movements" do
     setup do
@@ -126,6 +127,49 @@ defmodule Chess.Game.PawnMoveTest do
       ]
 
       assert {:error, _} = chain_moves(state, moves)
+    end
+  end
+
+  describe "Pawn promotion" do
+    setup do
+      board = %{
+        {?a, 7} => {:white, :pawn},
+        {?d, 2} => {:black, :pawn}
+      }
+
+      {:ok, %{board: board}}
+    end
+
+    test "Promote to queen", %{board: board} do
+      action = %Action{
+        game_state: {%Props{player: :white}, board},
+        move: {{?a, 7}, {?a, 8}},
+        params: %{player: :white, pawn_promotion: :queen}
+      }
+
+      assert {:ok, {_props, new_board}} = make_move(action)
+      assert {:white, :queen} = Map.get(new_board, {?a, 8})
+    end
+    
+    test "Promote to knight", %{board: board} do
+      action = %Action{
+        game_state: {%Props{player: :black}, board},
+        move: {{?d, 2}, {?d, 1}},
+        params: %{player: :black, pawn_promotion: :knight}
+      }
+
+      assert {:ok, {_props, new_board}} = make_move(action)
+      assert {:black, :knight} = Map.get(new_board, {?d, 1})
+    end
+    
+    test "Cannot promote to pawn", %{board: board} do
+      action = %Action{
+        game_state: {%Props{player: :black}, board},
+        move: {{?d, 2}, {?d, 1}},
+        params: %{player: :black, pawn_promotion: :pawn}
+      }
+
+      assert {:error, _msg} = make_move(action)
     end
   end
 end
