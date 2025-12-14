@@ -150,7 +150,7 @@ defmodule Chess.Game.PawnMoveTest do
       assert {:ok, {_props, new_board}} = make_move(action)
       assert {:white, :queen} = Map.get(new_board, {?a, 8})
     end
-    
+
     test "Promote to knight", %{board: board} do
       action = %Action{
         game_state: {%Props{player: :black}, board},
@@ -161,7 +161,7 @@ defmodule Chess.Game.PawnMoveTest do
       assert {:ok, {_props, new_board}} = make_move(action)
       assert {:black, :knight} = Map.get(new_board, {?d, 1})
     end
-    
+
     test "Cannot promote to pawn", %{board: board} do
       action = %Action{
         game_state: {%Props{player: :black}, board},

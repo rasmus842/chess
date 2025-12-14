@@ -3,7 +3,7 @@ defmodule Chess.Game.Utils do
   alias Chess.Game.Props
 
   @spec new_game() :: game_state()
-  def new_game(), do: {%Props{player: :white}, initial_position()}
+  def new_game(), do: {Props.initial_game_props(), initial_position()}
 
   @spec parse_move(String.t()) :: {:ok, move()} | error()
   def parse_move(<<f1::utf8, r1::utf8, f2::utf8, r2::utf8>>)
@@ -31,12 +31,68 @@ defmodule Chess.Game.Utils do
     end
   end
 
-  @spec get_path(board(), move()) :: [cell()]
-  def get_path(_board, _move = {current, target}) when current == target do
+  @spec has_piece(board(), cell()) :: boolean()
+  def has_piece(board, cell) do
+    Map.get(board, cell) != nil
+  end
+
+  @spec has_piece(board(), cell(), color()) :: boolean()
+  def has_piece(board, cell, color) do
+    case Map.get(board, cell) do
+      {c, _k} when c == color -> true
+      _ -> false
+    end
+  end
+
+  @spec has_piece(board(), cell(), color(), kind()) :: boolean()
+  def has_piece(board, cell, color, kind) do
+    case Map.get(board, cell) do
+      {c, k} when c == color and k == kind -> true
+      _ -> false
+    end
+  end
+
+  @spec get_king(game_state(), color()) :: cell()
+  def get_king({props, board}, _piece = color) do
+    cell =
+      case color do
+        :white -> Map.get(props, :white_king)
+        :black -> Map.get(props, :black_king)
+      end
+
+    {^color, :king} = Map.get(board, cell)
+
+    cell
+  end
+
+  @spec get_path_to_cell(cell(), (file(), rank() -> cell())) :: [cell()]
+  def get_path_to_cell(target, backtracker) do
+    origin = get_origin_cell(target, backtracker)
+
+    if origin == target do
+      []
+    else
+      get_path({origin, target})
+    end
+  end
+
+  @spec get_origin_cell(cell(), (file(), rank() -> cell())) :: cell()
+  defp get_origin_cell(target = {f, r}, backtracker) do
+    next_cell = backtracker.(f, r)
+
+    if cell_in_bounds?(next_cell) do
+      get_origin_cell(next_cell, backtracker)
+    else
+      target
+    end
+  end
+
+  @spec get_path(move()) :: [cell()]
+  def get_path(_move = {current, target}) when current == target do
     [target]
   end
 
-  def get_path(board, _move = {origin = {f1, r1}, target = {f2, r2}}) do
+  def get_path(_move = {origin = {f1, r1}, target = {f2, r2}}) do
     next_file =
       cond do
         f2 > f1 -> f1 + 1
@@ -52,7 +108,7 @@ defmodule Chess.Game.Utils do
       end
 
     next_tile = {next_file, next_rank}
-    [origin | get_path(board, {next_tile, target})]
+    [origin | get_path({next_tile, target})]
   end
 
   @doc """
@@ -70,12 +126,21 @@ defmodule Chess.Game.Utils do
     |> Enum.any?()
   end
 
+  @spec move_obstructed?(board(), move()) :: boolean()
+  def move_obstructed?(board, move) do
+    path = get_path(move)
+    path_obstructed?(board, path)
+  end
+
   @spec move_in_bounds?(move()) :: boolean()
-  def move_in_bounds?(_move = {_origin = {f1, r1}, _target = {f2, r2}}) do
-    f1 >= ?a and f1 <= ?h and
-      r1 >= 1 and r1 <= 8 and
-      f2 >= ?a and f2 <= ?h and
-      r2 >= 1 and r2 <= 8
+  def move_in_bounds?(_move = {origin, target}) do
+    cell_in_bounds?(origin) and cell_in_bounds?(target)
+  end
+
+  @spec cell_in_bounds?(cell()) :: boolean()
+  def cell_in_bounds?(_cell = {f, r}) do
+    f >= ?a and f <= ?h and
+      r >= 1 and r <= 8
   end
 
   @spec initial_position() :: board()

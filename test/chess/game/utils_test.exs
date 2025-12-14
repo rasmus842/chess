@@ -6,7 +6,7 @@ defmodule Chess.Game.UtilsTest do
   test "Creates new game" do
     {props, board} = new_game()
 
-    assert %Props{player: :white} == props
+    assert %Props{player: :white} = props
     assert Map.get(board, {?a, 2}) == {:white, :pawn}
     assert Map.get(board, {?a, 1}) == {:white, :rook}
     assert Map.get(board, {?d, 7}) == {:black, :pawn}
@@ -73,30 +73,40 @@ defmodule Chess.Game.UtilsTest do
 
     test "Straigth obstructed path", %{board: board} do
       move = {{?a, 1}, {?a, 8}}
-      path = get_path(board, move)
+      path = get_path(move)
       assert path == [{?a, 1}, {?a, 2}, {?a, 3}, {?a, 4}, {?a, 5}, {?a, 6}, {?a, 7}, {?a, 8}]
       assert path_obstructed?(board, path)
     end
 
     test "Straigth unobstructed path", %{board: board} do
       move = {{?a, 1}, {?a, 7}}
-      path = get_path(board, move)
+      path = get_path(move)
       assert path == [{?a, 1}, {?a, 2}, {?a, 3}, {?a, 4}, {?a, 5}, {?a, 6}, {?a, 7}]
       assert not path_obstructed?(board, path)
     end
 
     test "Diagonal obstructed path", %{board: board} do
       move = {{?c, 1}, {?a, 3}}
-      path = get_path(board, move)
+      path = get_path(move)
       assert path == [{?c, 1}, {?b, 2}, {?a, 3}]
       assert path_obstructed?(board, path)
     end
 
     test "Diagonal unobstructed path", %{board: board} do
       move = {{?c, 1}, {?h, 6}}
-      path = get_path(board, move)
+      path = get_path(move)
       assert path == [{?c, 1}, {?d, 2}, {?e, 3}, {?f, 4}, {?g, 5}, {?h, 6}]
       assert not path_obstructed?(board, path)
     end
+  end
+
+  describe "get_path_to_cell - horizontal path" do
+    path = get_path_to_cell({?e, 1}, &{&1 + 1, &2})
+    assert path == [{?h, 1}, {?g, 1}, {?f, 1}, {?e, 1}]
+  end
+
+  describe "get_path_to_cell - diagonal path" do
+    path = get_path_to_cell({?e, 1}, &{&1 + 1, &2 + 1})
+    assert path == [{?h, 4}, {?g, 3}, {?f, 2}, {?e, 1}]
   end
 end

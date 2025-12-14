@@ -2,29 +2,24 @@ defmodule Chess.Game.Validator.MoveValidator do
   @behaviour Chess.Game.Validator.Spec
   use Chess.Game.Types
   alias Chess.Game.Action
-  alias Chess.Game.Validator.PawnMoveValidator
-  alias Chess.Game.Validator.KnightMoveValidator
-  alias Chess.Game.Validator.RookMoveValidator
-  alias Chess.Game.Validator.BishopMoveValidator
-  alias Chess.Game.Validator.QueenMoveValidator
-  alias Chess.Game.Validator.KingMoveValidator
+  alias Chess.Game.Utils
   alias Chess.Game.Validator.CorrectColors
   alias Chess.Game.Validator.CorrectPlayer
-  alias Chess.Game.Utils
+  alias Chess.Game.Validator.PossibleMoves
 
   @impl true
   def validate(
         action = %Action{
-          game_state: {_props, board},
-          move: {origin, _target}
+          game_state: _game_state = {_props, board},
+          move: _move = {origin, _target}
         }
       ) do
     with :ok <- CorrectPlayer.validate(action),
          :ok <- validate_moves_in_bounds(action),
          :ok <- validate_piece_exists(board, origin),
          :ok <- CorrectColors.validate(action),
-         {:ok, piece_validator} <- get_piece_validator(action),
-         :ok <- piece_validator.validate(action) do
+         :ok <- validate_move_possible(action),
+         :ok <- validate_pawn_promotion(action) do
       :ok
     else
       err -> err
@@ -54,7 +49,7 @@ defmodule Chess.Game.Validator.MoveValidator do
         game_state: {_props, board},
         move: move
       }) do
-    path = Utils.get_path(board, move)
+    path = Utils.get_path(move)
 
     if Utils.path_obstructed?(board, path) do
       {:error, "Path is obstructed"}
@@ -63,21 +58,47 @@ defmodule Chess.Game.Validator.MoveValidator do
     end
   end
 
-  @spec get_piece_validator(Action.t()) :: {:ok, module()} | error()
-  defp(
-    get_piece_validator(%Action{
-      game_state: {_props, board},
-      move: {current, _target}
-    })
-  ) do
-    case Map.get(board, current) do
-      {_, :pawn} -> {:ok, PawnMoveValidator}
-      {_, :knight} -> {:ok, KnightMoveValidator}
-      {_, :rook} -> {:ok, RookMoveValidator}
-      {_, :bishop} -> {:ok, BishopMoveValidator}
-      {_, :queen} -> {:ok, QueenMoveValidator}
-      {_, :king} -> {:ok, KingMoveValidator}
-      {_, kind} -> {:error, "Missing validator for kind: #{kind}"}
+  @spec validate_move_possible(Action.t()) :: :ok | error()
+  defp validate_move_possible(%Action{
+         game_state: game_state,
+         move: {origin, target}
+       }) do
+    with possible_moves <- PossibleMoves.possible_moves(game_state),
+         {:ok, targets} <- Map.fetch(possible_moves, origin),
+         true <- target in targets do
+      :ok
+    else
+      _ -> {:error, "Move not possible"}
+    end
+  end
+
+  @spec validate_pawn_promotion(Action.t()) :: :ok | error()
+  defp validate_pawn_promotion(%Action{
+         game_state: {_props, board},
+         move: {origin, _target = {_f, r}},
+         params: params
+       }) do
+    piece = Map.get(board, origin)
+    pawn_promotion = Map.get(params, :pawn_promotion)
+
+    case {piece, pawn_promotion, r} do
+      {{color, :pawn}, kind, r}
+      when (color == :white and r == 8) or (color == :black and r == 1) ->
+        cond do
+          is_nil(kind) ->
+            {:error,
+             "Please provide kind that pawn is promoted to. Must promote to either knight, rook, bishop, or queen."}
+
+          kind not in [:knight, :rook, :bishop, :queen] ->
+            {:error,
+             "Invalid kind=#{kind}. Must promote to either knight, rook, bishop, or queen."}
+
+          true ->
+            :ok
+        end
+
+      _ ->
+        :ok
     end
   end
 end

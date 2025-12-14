@@ -6,12 +6,18 @@ defmodule Chess.Game.Move do
   alias Chess.Game.Props
   alias Chess.Game.Validator.MoveValidator
 
+  @moduledoc """
+  It might be a good idea to implement chess game moves, validation, board
+  using graphs and graph algos?
+  """
+
   @spec make_move(Action.t()) :: {:ok, game_state()} | error()
   def make_move(action) do
     with :ok <- MoveValidator.validate(action),
          new_board <- update_board(action),
-         new_props <- update_props(action) do
-      {:ok, _new_state = {new_props, new_board}}
+         new_props <- update_props(action),
+         new_state <- {new_props, new_board} do
+      {:ok, new_state}
     else
       {:error, message} ->
         Logger.debug("Unable to make move: " <> message)
@@ -38,7 +44,7 @@ defmodule Chess.Game.Move do
        }) do
     board
     |> Map.put(target, Map.get(board, origin))
-    |> Map.put(origin, nil)
+    |> Map.delete(origin)
   end
 
   @spec remove_en_passant_pawn(board(), Action.t()) :: board()
@@ -50,7 +56,7 @@ defmodule Chess.Game.Move do
         board
 
       {en_passant_pawn, _en_passant_target} ->
-        Map.put(board, en_passant_pawn, nil)
+        Map.delete(board, en_passant_pawn)
     end
   end
 
@@ -100,7 +106,7 @@ defmodule Chess.Game.Move do
       {rook_origin, rook_target} ->
         board
         |> Map.put(rook_target, Map.get(board, rook_origin))
-        |> Map.put(rook_origin, nil)
+        |> Map.delete(rook_origin)
     end
   end
 
@@ -110,6 +116,7 @@ defmodule Chess.Game.Move do
     |> update_player()
     |> update_active_en_passant(action)
     |> update_castling_props(action)
+    |> update_king_prop(action)
   end
 
   @spec update_player(Props.t()) :: Props.t()
@@ -153,11 +160,22 @@ defmodule Chess.Game.Move do
       {?e, 1} -> :white_king_moved
       {?e, 8} -> :black_king_moved
       {?a, 1} -> :a1_rook_moved
-      {?a, 1} -> :a1_rook_moved
       {?h, 1} -> :h1_rook_moved
       {?a, 8} -> :a8_rook_moved
       {?h, 8} -> :h8_rook_moved
       _ -> nil
+    end
+  end
+
+  @spec update_king_prop(Props.t(), Action.t()) :: Props.t()
+  defp update_king_prop(props, %Action{
+         game_state: {_, board},
+         move: {origin, target}
+       }) do
+    case Map.get(board, origin) do
+      {:white, :king} -> Map.put(props, :white_king, target)
+      {:black, :king} -> Map.put(props, :black_king, target)
+      _ -> props
     end
   end
 end
