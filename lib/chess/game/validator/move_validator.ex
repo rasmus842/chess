@@ -5,6 +5,7 @@ defmodule Chess.Game.Validator.MoveValidator do
   alias Chess.Game.Utils
   alias Chess.Game.Validator.CorrectColors
   alias Chess.Game.Validator.CorrectPlayer
+  alias Chess.Game.Validator.CastlingValidator
   alias Chess.Game.Validator.PossibleMoves
 
   @impl true
@@ -19,7 +20,8 @@ defmodule Chess.Game.Validator.MoveValidator do
          :ok <- validate_piece_exists(board, origin),
          :ok <- CorrectColors.validate(action),
          :ok <- validate_move_possible(action),
-         :ok <- validate_pawn_promotion(action) do
+         :ok <- validate_pawn_promotion(action),
+         :ok <- CastlingValidator.validate(action) do
       :ok
     else
       err -> err
@@ -41,20 +43,6 @@ defmodule Chess.Game.Validator.MoveValidator do
     case Map.get(board, origin) do
       nil -> {:error, "No piece exists at #{Utils.cell_to_string(origin)}"}
       _ -> :ok
-    end
-  end
-
-  @spec validate_path(Action.t()) :: :ok | error()
-  def validate_path(%Action{
-        game_state: {_props, board},
-        move: move
-      }) do
-    path = Utils.get_path(move)
-
-    if Utils.path_obstructed?(board, path) do
-      {:error, "Path is obstructed"}
-    else
-      :ok
     end
   end
 
