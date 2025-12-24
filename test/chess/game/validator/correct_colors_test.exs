@@ -1,6 +1,7 @@
 defmodule Chess.Game.Validator.CorrectColorsTest do
   use ExUnit.Case, async: true
   alias Chess.Game.Props
+  alias Chess.Game.GameState
   alias Chess.Game.Action
   alias Chess.Game.Validator.CorrectColors
 
@@ -16,7 +17,7 @@ defmodule Chess.Game.Validator.CorrectColorsTest do
 
   test "Player cannot move a piece that does not exist", %{board: board} do
     action = %Action{
-      game_state: {%Props{player: :white}, board},
+      game_state: %GameState{board: board, props: %Props{player: :white}},
       move: {{?a, 1}, {?a, 7}},
       params: %{player: :white}
     }
@@ -26,7 +27,7 @@ defmodule Chess.Game.Validator.CorrectColorsTest do
 
   test "Player cannot move another player's piece", %{board: board} do
     action = %Action{
-      game_state: {%Props{player: :white}, board},
+      game_state: %GameState{board: board, props: %Props{player: :white}},
       move: {{?a, 7}, {?a, 2}},
       params: %{player: :white}
     }
@@ -36,7 +37,7 @@ defmodule Chess.Game.Validator.CorrectColorsTest do
 
   test "Player cannot take his own piece", %{board: board} do
     action = %Action{
-      game_state: {%Props{player: :white}, board},
+      game_state: %GameState{board: board, props: %Props{player: :white}},
       move: {{?a, 2}, {?c, 2}},
       params: %{player: :white}
     }

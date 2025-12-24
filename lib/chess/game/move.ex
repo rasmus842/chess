@@ -1,9 +1,6 @@
 defmodule Chess.Game.Move do
   require Logger
-  use Chess.Game.Types
-  alias Chess.Game.Action
-  alias Chess.Game.Utils
-  alias Chess.Game.Props
+  use Chess.Game.Helper
   alias Chess.Game.Validator.MoveValidator
 
   @moduledoc """
@@ -11,12 +8,10 @@ defmodule Chess.Game.Move do
   using graphs and graph algos?
   """
 
-  @spec make_move(Action.t()) :: {:ok, game_state()} | error()
+  @spec make_move(Action.t()) :: T.result(GameState.t())
   def make_move(action) do
     with :ok <- MoveValidator.validate(action),
-         new_board <- update_board(action),
-         new_props <- update_props(action),
-         new_state <- {new_props, new_board} do
+         new_state <- update_game(action) do
       {:ok, new_state}
     else
       {:error, message} ->
@@ -25,10 +20,25 @@ defmodule Chess.Game.Move do
     end
   end
 
-  @spec update_board(Action.t()) :: board()
+  @spec update_game(Action.t()) :: GameState.t()
+  defp update_game(action) do
+    with board <- update_board(action),
+         props <- update_props(action),
+         targets <- %{},
+         moves <- %{} do
+      %GameState{
+        board: board,
+        props: props,
+        possible_targets: targets,
+        possible_moves: moves
+      }
+    end
+  end
+
+  @spec update_board(Action.t()) :: T.board()
   defp update_board(
          action = %Action{
-           game_state: {_props, board}
+           game_state: %GameState{board: board}
          }
        ) do
     board
@@ -38,7 +48,7 @@ defmodule Chess.Game.Move do
     |> move_castling_rook(action)
   end
 
-  @spec do_normal_board_update(board(), Action.t()) :: board()
+  @spec do_normal_board_update(T.board(), Action.t()) :: T.board()
   defp do_normal_board_update(board, %Action{
          move: {origin, target}
        }) do
@@ -47,9 +57,9 @@ defmodule Chess.Game.Move do
     |> Map.delete(origin)
   end
 
-  @spec remove_en_passant_pawn(board(), Action.t()) :: board()
+  @spec remove_en_passant_pawn(T.board(), Action.t()) :: T.board()
   defp remove_en_passant_pawn(board, %Action{
-         game_state: {props, _board}
+         game_state: %GameState{props: props}
        }) do
     case Map.get(props, :active_en_passant) do
       nil ->
@@ -60,7 +70,7 @@ defmodule Chess.Game.Move do
     end
   end
 
-  @spec promote_pawn(board(), Action.t()) :: board()
+  @spec promote_pawn(T.board(), Action.t()) :: T.board()
   defp promote_pawn(board, %Action{
          move: {_origin, target},
          params: params
@@ -75,7 +85,7 @@ defmodule Chess.Game.Move do
     end
   end
 
-  @spec move_castling_rook(board(), Action.t()) :: board()
+  @spec move_castling_rook(T.board(), Action.t()) :: T.board()
   defp move_castling_rook(board, %Action{
          move: {origin = {f1, _r1}, target = {f2, _r2}}
        }) do
@@ -111,7 +121,7 @@ defmodule Chess.Game.Move do
   end
 
   @spec update_props(Action.t()) :: Props.t()
-  defp update_props(action = %Action{game_state: {props, _board}}) do
+  defp update_props(action = %Action{game_state: %GameState{props: props}}) do
     props
     |> update_player()
     |> update_active_en_passant(action)
@@ -128,7 +138,7 @@ defmodule Chess.Game.Move do
   defp update_active_en_passant(
          props,
          %Action{
-           game_state: {_props, board},
+           game_state: %GameState{board: board},
            move: {origin = {f1, r1}, target = {f2, r2}}
          }
        ) do
@@ -154,7 +164,7 @@ defmodule Chess.Game.Move do
     end
   end
 
-  @spec get_castling_prop_key(cell()) :: atom()
+  @spec get_castling_prop_key(T.cell()) :: atom()
   defp get_castling_prop_key(origin) do
     case origin do
       {?e, 1} -> :white_king_moved
@@ -169,7 +179,7 @@ defmodule Chess.Game.Move do
 
   @spec update_king_prop(Props.t(), Action.t()) :: Props.t()
   defp update_king_prop(props, %Action{
-         game_state: {_, board},
+         game_state: %GameState{board: board},
          move: {origin, target}
        }) do
     case Map.get(board, origin) do

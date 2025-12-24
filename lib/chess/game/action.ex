@@ -1,5 +1,6 @@
 defmodule Chess.Game.Action do
-  use Chess.Game.Types
+  alias Chess.Game.Types, as: T
+  alias Chess.Game.GameState
 
   @doc """
   Data required to make chess move including:
@@ -15,13 +16,13 @@ defmodule Chess.Game.Action do
   ]
 
   @type params :: %{
-          player: player(),
-          pawn_promotion: kind()
+          required(:player) => T.player(),
+          optional(:pawn_promotion) => T.kind()
         }
 
   @type t :: %__MODULE__{
-          game_state: game_state(),
-          move: move(),
+          game_state: GameState.t(),
+          move: T.move(),
           params: params()
         }
 end

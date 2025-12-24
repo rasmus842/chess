@@ -1,23 +1,16 @@
 defmodule Chess.Game.Validator.MoveValidator do
   @behaviour Chess.Game.Validator.Spec
-  use Chess.Game.Types
-  alias Chess.Game.Action
-  alias Chess.Game.Utils
+  use Chess.Game.Helper
   alias Chess.Game.Validator.CorrectColors
   alias Chess.Game.Validator.CorrectPlayer
   alias Chess.Game.Validator.CastlingValidator
   alias Chess.Game.Validator.PossibleMoves
 
   @impl true
-  def validate(
-        action = %Action{
-          game_state: _game_state = {_props, board},
-          move: _move = {origin, _target}
-        }
-      ) do
+  def validate(action) do
     with :ok <- CorrectPlayer.validate(action),
          :ok <- validate_moves_in_bounds(action),
-         :ok <- validate_piece_exists(board, origin),
+         :ok <- validate_piece_exists(action),
          :ok <- CorrectColors.validate(action),
          :ok <- validate_move_possible(action),
          :ok <- validate_pawn_promotion(action),
@@ -28,7 +21,7 @@ defmodule Chess.Game.Validator.MoveValidator do
     end
   end
 
-  @spec validate_moves_in_bounds(Action.t()) :: :ok | error()
+  @spec validate_moves_in_bounds(Action.t()) :: T.result()
   defp validate_moves_in_bounds(%Action{
          move: move
        }) do
@@ -39,14 +32,17 @@ defmodule Chess.Game.Validator.MoveValidator do
     end
   end
 
-  defp validate_piece_exists(board, origin) do
+  defp validate_piece_exists(%Action{
+         game_state: %GameState{board: board},
+         move: {origin, _target}
+       }) do
     case Map.get(board, origin) do
       nil -> {:error, "No piece exists at #{Utils.cell_to_string(origin)}"}
       _ -> :ok
     end
   end
 
-  @spec validate_move_possible(Action.t()) :: :ok | error()
+  @spec validate_move_possible(Action.t()) :: T.result()
   defp validate_move_possible(%Action{
          game_state: game_state,
          move: {origin, target}
@@ -60,9 +56,9 @@ defmodule Chess.Game.Validator.MoveValidator do
     end
   end
 
-  @spec validate_pawn_promotion(Action.t()) :: :ok | error()
+  @spec validate_pawn_promotion(Action.t()) :: T.result()
   defp validate_pawn_promotion(%Action{
-         game_state: {_props, board},
+         game_state: %GameState{board: board},
          move: {origin, _target = {_f, r}},
          params: params
        }) do

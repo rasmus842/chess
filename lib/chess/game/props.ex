@@ -1,5 +1,5 @@
 defmodule Chess.Game.Props do
-  use Chess.Game.Types
+  alias Chess.Game.Types, as: T
 
   @doc """
   :player needed to validate who can make the next move,
@@ -20,14 +20,14 @@ defmodule Chess.Game.Props do
     :h8_rook_moved
   ]
 
-  @type en_passant_pawn :: cell()
-  @type en_passant_target :: cell()
+  @type en_passant_pawn :: T.cell()
+  @type en_passant_target :: T.cell()
 
   @type t :: %__MODULE__{
-          player: player(),
+          player: T.player(),
           active_en_passant: nil | {en_passant_pawn(), en_passant_target()},
-          white_king: cell(),
-          black_king: cell(),
+          white_king: T.cell(),
+          black_king: T.cell(),
           white_king_moved: boolean(),
           black_king_moved: boolean(),
           a1_rook_moved: boolean(),
@@ -36,7 +36,7 @@ defmodule Chess.Game.Props do
           h8_rook_moved: boolean()
         }
 
-  @spec initial_game_props() :: Props.t()
+  @spec initial_game_props() :: t()
   def initial_game_props() do
     %__MODULE__{
       player: :white,

@@ -92,8 +92,7 @@ defmodule Chess.Game.PawnMoveTest do
     end
 
     test "En passant - white pawn takes black", %{board: board} do
-      state =
-        {%Props{player: :black}, board}
+      state = %GameState{board: board, props: %Props{player: :black}}
 
       moves = [
         _black_pawn_jumps = {{?a, 7}, {?a, 5}},
@@ -104,8 +103,7 @@ defmodule Chess.Game.PawnMoveTest do
     end
 
     test "En passant - black pawn takes white", %{board: board} do
-      state =
-        {%Props{player: :white}, board}
+      state = %GameState{board: board, props: %Props{player: :white}}
 
       moves = [
         _white_pawn_jumps = {{?a, 2}, {?a, 4}},
@@ -116,8 +114,7 @@ defmodule Chess.Game.PawnMoveTest do
     end
 
     test "En passant not possible afterwards", %{board: board} do
-      state =
-        {%Props{player: :black}, board}
+      state = %GameState{board: board, props: %Props{player: :black}}
 
       moves = [
         _black_pawn_jumps = {{?a, 7}, {?a, 5}},
@@ -142,29 +139,29 @@ defmodule Chess.Game.PawnMoveTest do
 
     test "Promote to queen", %{board: board} do
       action = %Action{
-        game_state: {%Props{player: :white}, board},
+        game_state: %GameState{board: board, props: %Props{player: :white}},
         move: {{?a, 7}, {?a, 8}},
         params: %{player: :white, pawn_promotion: :queen}
       }
 
-      assert {:ok, {_props, new_board}} = make_move(action)
+      assert {:ok, %GameState{board: new_board}} = make_move(action)
       assert {:white, :queen} = Map.get(new_board, {?a, 8})
     end
 
     test "Promote to knight", %{board: board} do
       action = %Action{
-        game_state: {%Props{player: :black}, board},
+        game_state: %GameState{board: board, props: %Props{player: :black}},
         move: {{?d, 2}, {?d, 1}},
         params: %{player: :black, pawn_promotion: :knight}
       }
 
-      assert {:ok, {_props, new_board}} = make_move(action)
+      assert {:ok, %GameState{board: new_board}} = make_move(action)
       assert {:black, :knight} = Map.get(new_board, {?d, 1})
     end
 
     test "Cannot promote to pawn", %{board: board} do
       action = %Action{
-        game_state: {%Props{player: :black}, board},
+        game_state: %GameState{board: board, props: %Props{player: :black}},
         move: {{?d, 2}, {?d, 1}},
         params: %{player: :black, pawn_promotion: :pawn}
       }

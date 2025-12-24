@@ -76,7 +76,7 @@ defmodule Chess.Game.KingCastlesTest do
     end
 
     test "Cannot castle if king already moved", %{board: board} do
-      state = {%Props{player: :black}, board}
+      state = %GameState{board: board, props: %Props{player: :black}}
 
       moves = [
         _move_black_king = {{?e, 8}, {?e, 7}},
@@ -85,13 +85,13 @@ defmodule Chess.Game.KingCastlesTest do
         _move_white_rook_back = {{?a, 2}, {?a, 1}}
       ]
 
-      assert {:ok, {_props, new_board}} = chain_moves(state, moves)
+      assert {:ok, %GameState{board: new_board}} = chain_moves(state, moves)
       try_black_king_side_castle = {{?e, 1}, {?g, 1}}
       assert_move_is_error(new_board, try_black_king_side_castle)
     end
 
     test "Cannot castle if rook already moved", %{board: board} do
-      state = {%Props{player: :white}, board}
+      state = %GameState{board: board, props: %Props{player: :white}}
 
       moves = [
         _move_white_rook = {{?h, 1}, {?h, 2}}, 
@@ -100,7 +100,7 @@ defmodule Chess.Game.KingCastlesTest do
         _move_black_king_back = {{?d, 8}, {?e, 8}}
       ]
 
-      assert {:ok, {_props, new_board}} = chain_moves(state, moves)
+      assert {:ok, %GameState{board: new_board}} = chain_moves(state, moves)
       try_white_king_side_castle = {{?e, 1}, {?g, 1}}
       assert_move_is_error(new_board, try_white_king_side_castle)
     end

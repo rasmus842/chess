@@ -1,12 +1,10 @@
 defmodule Chess.Game.Validator.CorrectColors do
   @behaviour Chess.Game.Validator.Spec
-  alias Chess.Game.Props
-  alias Chess.Game.Action
-  alias Chess.Game.Utils
+  use Chess.Game.Helper
 
   @impl true
   def validate(%Action{
-        game_state: {%Props{player: current_player}, board},
+        game_state: %GameState{board: board, props: %Props{player: current_player}},
         move: {current, target},
         params: %{player: player}
       })

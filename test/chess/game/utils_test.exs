@@ -2,9 +2,10 @@ defmodule Chess.Game.UtilsTest do
   use ExUnit.Case, async: true
   import Chess.Game.Utils
   alias Chess.Game.Props
+  alias Chess.Game.GameState
 
   test "Creates new game" do
-    {props, board} = new_game()
+    %GameState{props: props, board: board} = GameState.new_game()
 
     assert %Props{player: :white} = props
     assert Map.get(board, {?a, 2}) == {:white, :pawn}

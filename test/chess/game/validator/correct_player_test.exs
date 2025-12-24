@@ -2,6 +2,7 @@ defmodule Chess.Game.Validator.CorrectPlayerTest do
   use ExUnit.Case, async: true
   alias Chess.Game.Props
   alias Chess.Game.Action
+  alias Chess.Game.GameState
   alias Chess.Game.Validator.CorrectPlayer
 
   setup do
@@ -15,7 +16,7 @@ defmodule Chess.Game.Validator.CorrectPlayerTest do
 
   test "Wrong player", %{board: board} do
     action = %Action{
-      game_state: {%Props{player: :white}, board},
+      game_state: %GameState{board: board, props: %Props{player: :white}},
       move: {{?a, 2}, {?a, 3}},
       params: %{player: :black}
     }
@@ -25,7 +26,7 @@ defmodule Chess.Game.Validator.CorrectPlayerTest do
 
   test "Correct player", %{board: board} do
     action = %Action{
-      game_state: {%Props{player: :white}, board},
+      game_state: %GameState{board: board, props: %Props{player: :white}},
       move: {{?a, 2}, {?a, 3}},
       params: %{player: :white}
     }

@@ -67,7 +67,7 @@ defmodule Chess.Game.RookMoveTest do
     end
 
     test "Black rook takes white rook", %{board: board} do
-      state = {%Props{player: :black}, board}
+      state = %GameState{board: board, props: %Props{player: :black}}
 
       moves = [
         _move_black_rook = {{?a, 8}, {?c, 8}},
@@ -75,7 +75,7 @@ defmodule Chess.Game.RookMoveTest do
         _black_rook_takes = {{?c, 8}, {?c, 1}}
       ]
 
-      assert {:ok, {_props, final_board}} = chain_moves(state, moves)
+      assert {:ok, %GameState{board: final_board}} = chain_moves(state, moves)
       assert Map.get(final_board, {?c, 1}) == {:black, :rook}
     end
   end

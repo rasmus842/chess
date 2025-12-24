@@ -1,11 +1,7 @@
 defmodule Chess.Game.Utils do
-  use Chess.Game.Types
-  alias Chess.Game.Props
+  alias Chess.Game.Types, as: T
 
-  @spec new_game() :: game_state()
-  def new_game(), do: {Props.initial_game_props(), initial_position()}
-
-  @spec parse_move(String.t()) :: {:ok, move()} | error()
+  @spec parse_move(String.t()) :: T.result(T.move())
   def parse_move(<<f1::utf8, r1::utf8, f2::utf8, r2::utf8>>)
       when f1 in ?a..?h and f2 in ?a..?h and r1 in ?1..?8 and r2 in ?1..?8 do
     move = {
@@ -18,12 +14,12 @@ defmodule Chess.Game.Utils do
 
   def parse_move(_), do: {:error, "Invalid move"}
 
-  @spec cell_to_string(cell()) :: String.t()
+  @spec cell_to_string(T.cell()) :: String.t()
   def cell_to_string(_cell = {file, rank}) when file in ?a..?h and rank in 1..8 do
     <<file::utf8, rank + ?0>>
   end
 
-  @spec other_player(player()) :: player()
+  @spec other_player(T.player()) :: T.player()
   def other_player(player) do
     case player do
       :white -> :black
@@ -31,12 +27,7 @@ defmodule Chess.Game.Utils do
     end
   end
 
-  @spec has_piece(board(), cell()) :: boolean()
-  def has_piece(board, cell) do
-    Map.get(board, cell) != nil
-  end
-
-  @spec has_piece(board(), cell(), color()) :: boolean()
+  @spec has_piece(T.board(), T.cell(), T.color()) :: boolean()
   def has_piece(board, cell, color) do
     case Map.get(board, cell) do
       {c, _k} when c == color -> true
@@ -44,28 +35,7 @@ defmodule Chess.Game.Utils do
     end
   end
 
-  @spec has_piece(board(), cell(), color(), kind()) :: boolean()
-  def has_piece(board, cell, color, kind) do
-    case Map.get(board, cell) do
-      {c, k} when c == color and k == kind -> true
-      _ -> false
-    end
-  end
-
-  @spec get_king(game_state(), color()) :: cell()
-  def get_king({props, board}, _piece = color) do
-    cell =
-      case color do
-        :white -> Map.get(props, :white_king)
-        :black -> Map.get(props, :black_king)
-      end
-
-    {^color, :king} = Map.get(board, cell)
-
-    cell
-  end
-
-  @spec get_path_to_cell(cell(), (file(), rank() -> cell())) :: [cell()]
+  @spec get_path_to_cell(T.cell(), (T.file(), T.rank() -> T.cell())) :: [T.cell()]
   def get_path_to_cell(target, backtracker) do
     origin = get_origin_cell(target, backtracker)
 
@@ -76,7 +46,7 @@ defmodule Chess.Game.Utils do
     end
   end
 
-  @spec get_origin_cell(cell(), (file(), rank() -> cell())) :: cell()
+  @spec get_origin_cell(T.cell(), (T.file(), T.rank() -> T.cell())) :: T.cell()
   defp get_origin_cell(target = {f, r}, backtracker) do
     next_cell = backtracker.(f, r)
 
@@ -87,7 +57,7 @@ defmodule Chess.Game.Utils do
     end
   end
 
-  @spec get_path(move()) :: [cell()]
+  @spec get_path(T.move()) :: [T.cell()]
   def get_path(_move = {current, target}) when current == target do
     [target]
   end
@@ -117,7 +87,7 @@ defmodule Chess.Game.Utils do
   At origin is the piece that is being moved.
   At target is potentially a piece to be taken.
   """
-  @spec path_obstructed?(board(), [cell()]) :: boolean()
+  @spec path_obstructed?(T.board(), [T.cell()]) :: boolean()
   def path_obstructed?(board, path) do
     path
     |> tl()
@@ -126,53 +96,20 @@ defmodule Chess.Game.Utils do
     |> Enum.any?()
   end
 
-  @spec move_obstructed?(board(), move()) :: boolean()
+  @spec move_obstructed?(T.board(), T.move()) :: boolean()
   def move_obstructed?(board, move) do
     path = get_path(move)
     path_obstructed?(board, path)
   end
 
-  @spec move_in_bounds?(move()) :: boolean()
+  @spec move_in_bounds?(T.move()) :: boolean()
   def move_in_bounds?(_move = {origin, target}) do
     cell_in_bounds?(origin) and cell_in_bounds?(target)
   end
 
-  @spec cell_in_bounds?(cell()) :: boolean()
+  @spec cell_in_bounds?(T.cell()) :: boolean()
   def cell_in_bounds?(_cell = {f, r}) do
     f >= ?a and f <= ?h and
       r >= 1 and r <= 8
-  end
-
-  @spec initial_position() :: board()
-  def initial_position() do
-    ?a..?h
-    |> Enum.flat_map(fn file ->
-      1..8
-      |> Enum.map(fn rank ->
-        cell = {file, rank}
-        piece = piece_for_initial_position(cell)
-        {cell, piece}
-      end)
-    end)
-    |> Map.new()
-  end
-
-  @spec piece_for_initial_position(cell()) :: piece()
-  defp piece_for_initial_position(cell) do
-    case cell do
-      {_, 2} -> {:white, :pawn}
-      {_, 7} -> {:black, :pawn}
-      {c, 1} when c in [?a, ?h] -> {:white, :rook}
-      {c, 8} when c in [?a, ?h] -> {:black, :rook}
-      {c, 1} when c in [?b, ?g] -> {:white, :knight}
-      {c, 8} when c in [?b, ?g] -> {:black, :knight}
-      {c, 1} when c in [?c, ?f] -> {:white, :bishop}
-      {c, 8} when c in [?c, ?f] -> {:black, :bishop}
-      {?d, 1} -> {:white, :queen}
-      {?d, 8} -> {:black, :queen}
-      {?e, 1} -> {:white, :king}
-      {?e, 8} -> {:black, :king}
-      _ -> nil
-    end
   end
 end

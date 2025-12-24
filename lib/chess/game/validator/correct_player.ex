@@ -1,11 +1,10 @@
 defmodule Chess.Game.Validator.CorrectPlayer do
   @behaviour Chess.Game.Validator.Spec
-  alias Chess.Game.Props
-  alias Chess.Game.Action
+  use Chess.Game.Helper
 
   @impl true
   def validate(%Action{
-        game_state: {%Props{player: current_player}, _board},
+        game_state: %GameState{props: %Props{player: current_player}},
         params: %{player: player}
       }) do
     if player == current_player do
