@@ -5,7 +5,7 @@ defmodule Chess.Game.UtilsTest do
   alias Chess.Game.GameState
 
   test "Creates new game" do
-    %GameState{props: props, board: board} = GameState.new_game()
+    %GameState{props: props, board: board} = GameState.new()
 
     assert %Props{player: :white} = props
     assert Map.get(board, {?a, 2}) == {:white, :pawn}

@@ -67,7 +67,7 @@ defmodule Chess.Game.RookMoveTest do
     end
 
     test "Black rook takes white rook", %{board: board} do
-      state = %GameState{board: board, props: %Props{player: :black}}
+      state = GameState.new(board: board, player: :black)
 
       moves = [
         _move_black_rook = {{?a, 8}, {?c, 8}},

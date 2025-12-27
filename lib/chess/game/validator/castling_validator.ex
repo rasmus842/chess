@@ -70,10 +70,10 @@ defmodule Chess.Game.Validator.CastlingValidator do
         {?c, 8} -> {?a, 8}
       end
 
-    piece = Map.get(board, pos)
+    rook = Map.get(board, pos)
     king = Map.get(board, origin)
 
-    case {king, piece} do
+    case {king, rook} do
       {{c1, :king}, {c2, :rook}} when c1 == c2 -> :ok
       _ -> {:error, "Castling not possible, rook does not exist at castling square"}
     end

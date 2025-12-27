@@ -1,10 +1,210 @@
 defmodule Chess.Game.Validator.PossibleMoves do
   use Chess.Game.Helper
 
-  @spec possible_moves(GameState.t()) :: %{
-          optional(T.cell()) => [T.cell()]
+  @typep pinned_piece :: T.cell()
+  @typep cells_pinned_to :: T.cells()
+  @type pin :: {pinned_piece(), cells_pinned_to()}
+  @type pins :: %{optional(pinned_piece()) => cells_pinned_to()}
+
+  @spec possible_moves(GameState.t()) :: {T.targets(), T.attacks()}
+  def possible_moves(
+        game_state = %GameState{
+          board: board,
+          props: %Props{player: player, white_king: white_king_cell, black_king: black_king_cell}
         }
-  def possible_moves(game_state = %GameState{board: board}) do
+      ) do
+    pins = get_pins(game_state)
+    all_targets = all_targets(game_state)
+    all_attackers = possible_attackers(all_targets)
+
+    current_player_king_cell =
+      case player do
+        :white -> white_king_cell
+        :black -> black_king_cell
+      end
+
+    checkers =
+      case Map.get(all_attackers, current_player_king_cell) do
+        nil -> MapSet.new()
+        atks -> MapSet.new(atks)
+      end
+
+    # king can move to unattacked targets
+    king_escape_targets =
+      Map.get(all_targets, current_player_king_cell, [])
+      |> Enum.reject(fn cell ->
+        Map.get(all_attackers, cell)
+        |> Enum.map(&Map.get(board, &1))
+        |> Enum.any?(fn {col, _} -> col != player end)
+      end)
+      |> MapSet.new()
+
+    possible_targets =
+      all_targets
+      |> Enum.filter(fn {origin, _} ->
+        case Map.get(board, origin) do
+          {^player, _} -> true
+          _ -> false
+        end
+      end)
+      |> Enum.map(fn {origin, targets} ->
+        case Map.get(pins, origin) do
+          nil -> {origin, targets}
+          cells_pinned_to -> {origin, MapSet.intersection(targets, cells_pinned_to)}
+        end
+      end)
+      |> Map.new()
+      |> Map.put(current_player_king_cell, king_escape_targets)
+
+    # also put castling moves here
+
+    checks = %{current_player_king_cell => checkers}
+
+    case Enum.count(checkers) do
+      0 ->
+        {possible_targets, checks}
+
+      count ->
+        king_escape_moves = %{current_player_king_cell => king_escape_targets}
+
+        cond do
+          count > 1 ->
+            {king_escape_moves, checks}
+
+          true ->
+            possible_attackers = possible_attackers(possible_targets)
+
+            [checker] = MapSet.to_list(checkers)
+
+            takes_checker =
+              Map.get(possible_attackers, checker)
+              |> Enum.map(&{&1, MapSet.new([checker])})
+
+            blocks_checker =
+              case Map.get(board, checker) do
+                {_, k} when k in [:pawn, :knight] ->
+                  []
+
+                _ ->
+                  Utils.get_path({checker, current_player_king_cell})
+                  |> Enum.reject(&(&1 == current_player_king_cell or &1 == checker))
+                  |> Enum.map(&{&1, Map.get(possible_attackers, &1)})
+                  |> Enum.reject(fn _origin, target -> is_nil(target) end)
+              end
+
+            possible_moves =
+              [
+                king_escape_moves,
+                takes_checker,
+                blocks_checker
+              ]
+              |> Enum.flat_map(& &1)
+              |> Map.new()
+
+            {possible_moves, checks}
+        end
+    end
+  end
+
+  @spec get_pins(GameState.t()) :: pins()
+  defp get_pins(
+         game_state = %GameState{
+           board: board,
+           props: props
+         }
+       ) do
+    white_king_cell = Map.get(props, :white_king)
+    white_king_piece = Map.get(board, white_king_cell)
+    white_piece_pins = get_pins(game_state, white_king_cell, white_king_piece)
+
+    black_king_cell = Map.get(props, :black_king)
+    black_king_piece = Map.get(board, black_king_cell)
+    black_piece_pins = get_pins(game_state, black_king_cell, black_king_piece)
+
+    Enum.concat(white_piece_pins, black_piece_pins)
+    |> Map.new()
+  end
+
+  @spec get_pins(GameState.t(), T.cell() | nil, T.piece() | nil) :: pins()
+  defp get_pins(_game_state, cell, piece)
+       when is_nil(cell) or is_nil(piece) do
+    %{}
+  end
+
+  defp get_pins(game_state, target, king_piece) do
+    rook_or_queen_pinning_attacks =
+      rook_paths_to(target)
+      |> Enum.map(&to_pin(game_state, &1, king_piece, [:rook, :queen]))
+
+    bishop_or_queen_pinning_attacks =
+      bishop_paths_to(target)
+      |> Enum.map(&to_pin(game_state, &1, king_piece, [:bishop, :queen]))
+
+    [rook_or_queen_pinning_attacks, bishop_or_queen_pinning_attacks]
+    |> Enum.flat_map(& &1)
+    |> Enum.reject(&is_nil/1)
+  end
+
+  @spec to_pin(GameState.t(), [T.cell()], T.piece(), [T.kind()]) :: pin() | nil
+  defp to_pin(
+         %GameState{board: board},
+         path_to_king,
+         king_piece = {color_of_king, :king},
+         attack_kinds
+       ) do
+    opponent_color = Utils.other_player(color_of_king)
+
+    result =
+      Enum.reduce(
+        path_to_king,
+        {[], nil, nil},
+        fn cell, {cells, attacker, blocker} ->
+          case {Map.get(board, cell), attacker, blocker} do
+            {nil, nil, _} ->
+              {[], nil, nil}
+
+            {nil, _, _} ->
+              {[cell | cells], attacker, blocker}
+
+            {^king_piece, _, _} ->
+              {cells, attacker, blocker}
+
+            {{^color_of_king, _k}, _, nil} ->
+              {[cell | cells], attacker, cell}
+
+            {{^color_of_king, _k}, _, _} ->
+              {[], nil, nil}
+
+            {{^opponent_color, k}, _, _} ->
+              cond do
+                k in attack_kinds -> {[cell], cell, nil}
+                true -> {[], nil, nil}
+              end
+          end
+        end
+      )
+
+    case result do
+      {cells_pinned_to, pinner, pinned_piece}
+      when cells_pinned_to == [] or is_nil(pinner) or is_nil(pinned_piece) ->
+        nil
+
+      {cells_pinned_to, _pinner, pinned_piece} ->
+        {pinned_piece, MapSet.new(cells_pinned_to)}
+    end
+  end
+
+  @spec possible_attackers(T.targets()) :: T.attacks()
+  defp possible_attackers(possible_targets) do
+    Enum.reduce(possible_targets, %{}, fn {attacker, targets}, acc ->
+      Enum.reduce(targets, acc, fn target, acc2 ->
+        Map.update(acc2, target, MapSet.new([attacker]), &MapSet.put(&1, attacker))
+      end)
+    end)
+  end
+
+  @spec all_targets(GameState.t()) :: T.targets()
+  def all_targets(game_state = %GameState{board: board}) do
     board
     |> Enum.reject(fn {_cell, piece} -> piece == nil end)
     |> Enum.map(fn {cell, piece} ->
@@ -13,17 +213,7 @@ defmodule Chess.Game.Validator.PossibleMoves do
     |> Map.new()
   end
 
-  @spec possible_targets(GameState.t()) :: %{optional(T.cell()) => [T.cell()]}
-  def possible_targets(game_state = %GameState{board: board}) do
-    board
-    |> Enum.reject(fn {_cell, piece} -> piece == nil end)
-    |> Enum.map(fn {cell, piece} ->
-      {cell, possible_piece_targets(game_state, cell, piece)}
-    end)
-    |> Map.new()
-  end
-
-  @spec possible_piece_targets(GameState.t(), T.cell(), T.piece()) :: [T.cell()]
+  @spec possible_piece_targets(GameState.t(), T.cell(), T.piece()) :: T.cells()
   defp possible_piece_targets(game_state, origin, _piece = {_color, kind}) do
     get_targets =
       case kind do
@@ -36,9 +226,10 @@ defmodule Chess.Game.Validator.PossibleMoves do
       end
 
     get_targets.(game_state, origin)
+    |> MapSet.new()
   end
 
-  @spec king_possible_targets(GameState.t(), T.cell()) :: [T.cell()]
+  @spec king_possible_targets(GameState.t(), T.cell()) :: T.cells()
   defp king_possible_targets(%GameState{board: board}, origin) do
     {color, :king} = Map.get(board, origin)
 
@@ -109,57 +300,57 @@ defmodule Chess.Game.Validator.PossibleMoves do
   defp rook_possible_targets(%GameState{board: board}, origin) do
     {color, :rook} = Map.get(board, origin)
 
-    rook_all_targets(origin)
-    |> Enum.filter(&Utils.cell_in_bounds?/1)
+    rook_paths_to(origin)
+    |> Enum.flat_map(& &1)
     |> Enum.reject(&Utils.has_piece(board, &1, color))
     |> Enum.reject(&Utils.move_obstructed?(board, {origin, &1}))
   end
 
-  defp rook_all_targets(origin) do
+  defp rook_paths_to(target) do
     [
       &{&1 + 1, &2},
       &{&1 - 1, &2},
       &{&1, &2 + 1},
       &{&1, &2 - 1}
     ]
-    |> Enum.flat_map(&Utils.get_path_to_cell(origin, &1))
-    |> Enum.reject(&(&1 == origin))
+    |> Enum.map(&Utils.get_path_to_cell(target, &1))
   end
 
   @spec bishop_possible_targets(GameState.t(), T.cell()) :: [T.cell()]
   defp bishop_possible_targets(%GameState{board: board}, origin) do
     {color, :bishop} = Map.get(board, origin)
 
-    bishop_all_targets(origin)
-    |> Enum.filter(&Utils.cell_in_bounds?/1)
+    bishop_paths_to(origin)
+    |> Enum.flat_map(& &1)
     |> Enum.reject(&Utils.has_piece(board, &1, color))
     |> Enum.reject(&Utils.move_obstructed?(board, {origin, &1}))
   end
 
-  defp bishop_all_targets(origin) do
+  defp bishop_paths_to(origin) do
     [
       &{&1 + 1, &2 + 1},
       &{&1 + 1, &2 - 1},
       &{&1 - 1, &2 + 1},
       &{&1 - 1, &2 - 1}
     ]
-    |> Enum.flat_map(&Utils.get_path_to_cell(origin, &1))
-    |> Enum.reject(&(&1 == origin))
+    |> Enum.map(&Utils.get_path_to_cell(origin, &1))
   end
 
   @spec queen_possible_targets(GameState.t(), T.cell()) :: [T.cell()]
   defp queen_possible_targets(%GameState{board: board}, origin) do
     {color, :queen} = Map.get(board, origin)
 
-    queen_all_targets(origin)
-    |> Enum.filter(&Utils.cell_in_bounds?/1)
+    queen_paths_to(origin)
+    |> Enum.flat_map(& &1)
     |> Enum.reject(&Utils.has_piece(board, &1, color))
     |> Enum.reject(&Utils.move_obstructed?(board, {origin, &1}))
   end
 
-  defp queen_all_targets(origin) do
-    [&bishop_all_targets/1, &rook_all_targets/1]
-    |> Enum.flat_map(& &1.(origin))
+  defp queen_paths_to(origin) do
+    Enum.concat(
+      bishop_paths_to(origin),
+      rook_paths_to(origin)
+    )
   end
 
   @spec knight_possible_targets(GameState.t(), T.cell()) :: [T.cell()]
@@ -206,20 +397,6 @@ defmodule Chess.Game.Validator.PossibleMoves do
     [
       {f, r - 1},
       {f, r - 2},
-      {f + 1, r - 1},
-      {f - 1, r - 1}
-    ]
-  end
-
-  defp pawn_all_take_targets(_origin = {f, r}, :white) do
-    [
-      {f + 1, r + 1},
-      {f - 1, r + 1}
-    ]
-  end
-
-  defp pawn_all_take_targets(_origin = {f, r}, :black) do
-    [
       {f + 1, r - 1},
       {f - 1, r - 1}
     ]

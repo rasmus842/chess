@@ -34,6 +34,14 @@ defmodule Chess.Game.Utils do
       _ -> false
     end
   end
+  
+  @spec has_piece(T.board(), T.cell(), T.color(), T.kind()) :: boolean()
+  def has_piece(board, cell, color, kind) do
+    case Map.get(board, cell) do
+      {c, k} when c == color and k == kind -> true
+      _ -> false
+    end
+  end
 
   @spec get_path_to_cell(T.cell(), (T.file(), T.rank() -> T.cell())) :: [T.cell()]
   def get_path_to_cell(target, backtracker) do

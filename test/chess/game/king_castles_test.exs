@@ -76,7 +76,7 @@ defmodule Chess.Game.KingCastlesTest do
     end
 
     test "Cannot castle if king already moved", %{board: board} do
-      state = %GameState{board: board, props: %Props{player: :black}}
+      state = GameState.new(board: board, player: :black)
 
       moves = [
         _move_black_king = {{?e, 8}, {?e, 7}},
@@ -91,7 +91,7 @@ defmodule Chess.Game.KingCastlesTest do
     end
 
     test "Cannot castle if rook already moved", %{board: board} do
-      state = %GameState{board: board, props: %Props{player: :white}}
+      state = GameState.new(board: board, player: :white)
 
       moves = [
         _move_white_rook = {{?h, 1}, {?h, 2}}, 

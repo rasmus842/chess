@@ -10,6 +10,9 @@ defmodule Chess.Game.Types do
   @type board :: %{cell() => piece() | nil}
 
   @type move :: {cell(), cell()}
+  @type cells :: MapSet.t(cell())
+  @type targets :: %{optional(cell()) => cells()}
+  @type attacks :: %{optional(cell()) => cells()}
   @type error :: {:error, term()}
 
   @type result(t) :: {:ok, t} | error()

@@ -55,7 +55,7 @@ defmodule Chess.Game.QueenMoveTest do
     end
 
     test "Black queen takes white queen", %{board: board} do
-      state = %GameState{board: board, props: %Props{player: :black}}
+      state = GameState.new(board: board, player: :black)
 
       moves = [
         _move_black_queen = {{?a, 8}, {?c, 8}},

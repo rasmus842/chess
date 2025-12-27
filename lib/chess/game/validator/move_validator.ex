@@ -4,7 +4,6 @@ defmodule Chess.Game.Validator.MoveValidator do
   alias Chess.Game.Validator.CorrectColors
   alias Chess.Game.Validator.CorrectPlayer
   alias Chess.Game.Validator.CastlingValidator
-  alias Chess.Game.Validator.PossibleMoves
 
   @impl true
   def validate(action) do
@@ -44,15 +43,18 @@ defmodule Chess.Game.Validator.MoveValidator do
 
   @spec validate_move_possible(Action.t()) :: T.result()
   defp validate_move_possible(%Action{
-         game_state: game_state,
+         game_state: %GameState{possible_moves: possible_moves},
          move: {origin, target}
        }) do
-    with possible_moves <- PossibleMoves.possible_moves(game_state),
-         {:ok, targets} <- Map.fetch(possible_moves, origin),
-         true <- target in targets do
-      :ok
-    else
-      _ -> {:error, "Move not possible"}
+    dbg(possible_moves)
+    moves = Map.get(possible_moves, origin)
+
+    cond do
+      is_nil(moves) or not Enum.member?(moves, target) ->
+        {:error, "Move not possible"}
+
+      true ->
+        :ok
     end
   end
 

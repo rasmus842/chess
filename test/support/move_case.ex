@@ -21,7 +21,7 @@ defmodule Chess.Game.MoveCase do
         {color, _kind} = _piece = Map.get(board, origin)
 
         action = %Action{
-          game_state: %GameState{board: board, props: %Props{player: color}},
+          game_state: GameState.new(board: board, player: color),
           move: move,
           params: %{player: color}
         }

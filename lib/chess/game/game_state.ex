@@ -1,26 +1,33 @@
 defmodule Chess.Game.GameState do
   alias Chess.Game.Types, as: T
   alias Chess.Game.Props
+  alias Chess.Game.Validator.PossibleMoves
 
-  @enforce_keys [:board, :props]
   defstruct board: %{},
-            props: %Props{player: :white},
-            possible_targets: %{},
-            possible_moves: %{}
+            props: %Props{},
+            possible_moves: %{},
+            checks: %{}
 
   @type t :: %__MODULE__{
           board: T.board(),
           props: Props.t(),
-          possible_targets: %{optional(T.cell()) => [T.cell()]},
-          possible_moves: %{optional(T.cell()) => [T.cell()]}
+          possible_moves: T.targets(),
+          checks: T.attacks()
         }
 
-  @spec new_game() :: t()
-  def new_game() do
-    %__MODULE__{
-      board: initial_position(),
-      props: Props.initial_game_props()
-    }
+  @spec new() :: t()
+  @spec new(keyword()) :: t()
+  def new(attrs \\ []) when is_list(attrs) do
+    board = Keyword.get(attrs, :board, initial_position())
+    props = Props.from_board(board, attrs)
+
+    %__MODULE__{board: board, props: props}
+    |> recompute()
+  end
+
+  defp recompute(state = %__MODULE__{}) do
+    {moves, checks} = PossibleMoves.possible_moves(state)
+    %__MODULE__{state | possible_moves: moves, checks: checks}
   end
 
   @spec initial_position() :: T.board()
@@ -34,6 +41,7 @@ defmodule Chess.Game.GameState do
         {cell, piece}
       end)
     end)
+    |> Enum.reject(fn {_cell, piece} -> is_nil(piece) end)
     |> Map.new()
   end
 

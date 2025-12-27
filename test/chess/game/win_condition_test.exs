@@ -18,6 +18,10 @@ defmodule Chess.Game.WinConditionTest do
       {:ok, %{board: board}}
     end
 
+    test "Sanity check for possible move", %{board: board} do
+      assert_move_is_ok(board, {{?e, 2}, {?e, 3}})
+    end
+
     for {name, move} <- [
           {"Black rook pins white rook", {{?d, 1}, {?d, 4}}},
           {"Black queen pins white bishop", {{?f, 1}, {?h, 3}}},

@@ -92,7 +92,7 @@ defmodule Chess.Game.PawnMoveTest do
     end
 
     test "En passant - white pawn takes black", %{board: board} do
-      state = %GameState{board: board, props: %Props{player: :black}}
+      state = GameState.new(board: board, player: :black)
 
       moves = [
         _black_pawn_jumps = {{?a, 7}, {?a, 5}},
@@ -103,7 +103,7 @@ defmodule Chess.Game.PawnMoveTest do
     end
 
     test "En passant - black pawn takes white", %{board: board} do
-      state = %GameState{board: board, props: %Props{player: :white}}
+      state = GameState.new(board: board, player: :white)
 
       moves = [
         _white_pawn_jumps = {{?a, 2}, {?a, 4}},
@@ -114,7 +114,7 @@ defmodule Chess.Game.PawnMoveTest do
     end
 
     test "En passant not possible afterwards", %{board: board} do
-      state = %GameState{board: board, props: %Props{player: :black}}
+      state = GameState.new(board: board, player: :black)
 
       moves = [
         _black_pawn_jumps = {{?a, 7}, {?a, 5}},
@@ -139,7 +139,7 @@ defmodule Chess.Game.PawnMoveTest do
 
     test "Promote to queen", %{board: board} do
       action = %Action{
-        game_state: %GameState{board: board, props: %Props{player: :white}},
+        game_state: GameState.new(board: board),
         move: {{?a, 7}, {?a, 8}},
         params: %{player: :white, pawn_promotion: :queen}
       }
@@ -150,7 +150,7 @@ defmodule Chess.Game.PawnMoveTest do
 
     test "Promote to knight", %{board: board} do
       action = %Action{
-        game_state: %GameState{board: board, props: %Props{player: :black}},
+        game_state: GameState.new(board: board, player: :black),
         move: {{?d, 2}, {?d, 1}},
         params: %{player: :black, pawn_promotion: :knight}
       }
@@ -161,7 +161,7 @@ defmodule Chess.Game.PawnMoveTest do
 
     test "Cannot promote to pawn", %{board: board} do
       action = %Action{
-        game_state: %GameState{board: board, props: %Props{player: :black}},
+        game_state: GameState.new(board: board, player: :black),
         move: {{?d, 2}, {?d, 1}},
         params: %{player: :black, pawn_promotion: :pawn}
       }

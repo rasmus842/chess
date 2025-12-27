@@ -1,5 +1,6 @@
 defmodule Chess.Game.Move do
   require Logger
+  alias Chess.Game.Validator.PossibleMoves
   use Chess.Game.Helper
   alias Chess.Game.Validator.MoveValidator
 
@@ -24,14 +25,9 @@ defmodule Chess.Game.Move do
   defp update_game(action) do
     with board <- update_board(action),
          props <- update_props(action),
-         targets <- %{},
-         moves <- %{} do
-      %GameState{
-        board: board,
-        props: props,
-        possible_targets: targets,
-        possible_moves: moves
-      }
+         state <- %GameState{board: board, props: props},
+         {moves, checks} <- PossibleMoves.possible_moves(state) do
+      %GameState{state | possible_moves: moves, checks: checks}
     end
   end
 
