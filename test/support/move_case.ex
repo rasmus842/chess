@@ -41,7 +41,7 @@ defmodule Chess.Game.MoveCase do
         message
       end
 
-      @spec chain_moves(GameState.t(), [T.move()]) :: GameState.t() | T.error()
+      @spec chain_moves(GameState.t(), [T.move()]) :: T.result(GameState.t())
       def chain_moves(state, []), do: {:ok, state}
 
       def chain_moves(state = %GameState{board: board, props: %Props{player: player}}, [

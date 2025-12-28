@@ -10,7 +10,8 @@ defmodule Chess.Game.Validator.Castling do
     |> Enum.reject(fn {_, rook_prop} -> Map.get(props, rook_prop, true) end)
     |> Enum.reject(fn {move, _} ->
       castling_obstructed?(game_state, move) or
-        castling_path_attacked?(game_state, all_attackers, move)
+        castling_path_attacked?(game_state, all_attackers, move) or
+        rook_missing?(game_state, move)
     end)
     |> Enum.map(fn {{_origin, target}, _} -> target end)
     |> MapSet.new()
@@ -65,5 +66,17 @@ defmodule Chess.Game.Validator.Castling do
         end
       end)
     end)
+  end
+
+  defp rook_missing?(%GameState{board: board}, {_, target}) do
+    rook_cell =
+      case target do
+        {?g, 1} -> {?h, 1}
+        {?g, 8} -> {?h, 8}
+        {?c, 1} -> {?a, 8}
+        {?c, 8} -> {?a, 8}
+      end
+
+    is_nil(Map.get(board, rook_cell))
   end
 end

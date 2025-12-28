@@ -44,7 +44,6 @@ defmodule Chess.Game.Validator.MoveValidator do
          game_state: %GameState{possible_moves: possible_moves},
          move: {origin, target}
        }) do
-    dbg(possible_moves)
     moves = Map.get(possible_moves, origin)
 
     cond do

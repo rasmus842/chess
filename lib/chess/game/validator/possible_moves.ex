@@ -1,6 +1,6 @@
 defmodule Chess.Game.Validator.PossibleMoves do
   use Chess.Game.Helper
-  alias Chess.Game.Castling
+  alias Chess.Game.Validator.Castling
 
   @typep pinned_piece :: T.cell()
   @typep cells_pinned_to :: T.cells()
@@ -46,7 +46,7 @@ defmodule Chess.Game.Validator.PossibleMoves do
     king_possible_targets = MapSet.union(king_escape_targets, king_castling_targets)
 
     possible_targets =
-      all_targets
+      Map.put(all_targets, current_player_king_cell, king_possible_targets)
       |> Enum.filter(fn {origin, _} ->
         case Map.get(board, origin) do
           {^player, _} -> true
@@ -59,55 +59,58 @@ defmodule Chess.Game.Validator.PossibleMoves do
           cells_pinned_to -> {origin, MapSet.intersection(targets, cells_pinned_to)}
         end
       end)
+      |> Enum.reject(fn {_origin, targets} ->
+        targets == nil or MapSet.size(targets) == 0
+      end)
       |> Map.new()
-      |> Map.put(current_player_king_cell, king_possible_targets)
 
-    checks = %{current_player_king_cell => checkers}
+    checks =
+      if current_player_king_cell != nil and MapSet.size(checkers) > 0 do
+        %{current_player_king_cell => checkers}
+      else
+        %{}
+      end
 
-    case Enum.count(checkers) do
-      0 ->
-        {possible_targets, checks}
+    possible_moves =
+      case MapSet.size(checkers) do
+        0 ->
+          possible_targets
 
-      count ->
-        king_escape_moves = %{current_player_king_cell => king_escape_targets}
+        c when c > 1 ->
+          cond do
+            MapSet.size(king_escape_targets) == 0 -> %{}
+            true -> %{current_player_king_cell => king_escape_targets}
+          end
 
-        cond do
-          count > 1 ->
-            {king_escape_moves, checks}
+        1 ->
+          [checker] = MapSet.to_list(checkers)
 
-          true ->
-            possible_attackers = possible_attackers(possible_targets)
+          cells_to_cancel_check =
+            case Map.get(board, checker) do
+              {_, k} when k in [:pawn, :knight] ->
+                # cannot block, can only take
+                MapSet.new([checker])
 
-            [checker] = MapSet.to_list(checkers)
+              _ ->
+                # include blocking moves aswell
+                Utils.get_path({checker, current_player_king_cell})
+                |> Enum.reject(&(&1 == current_player_king_cell))
+                |> MapSet.new()
+            end
 
-            takes_checker =
-              Map.get(possible_attackers, checker)
-              |> Enum.map(&{&1, MapSet.new([checker])})
+          possible_targets
+          |> Enum.map(fn {origin, targets} ->
+            if origin == current_player_king_cell do
+              {origin, MapSet.intersection(targets, king_escape_targets)}
+            else
+              {origin, MapSet.intersection(targets, cells_to_cancel_check)}
+            end
+          end)
+          |> Enum.reject(fn {_, targets} -> MapSet.size(targets) == 0 end)
+          |> Map.new()
+      end
 
-            blocks_checker =
-              case Map.get(board, checker) do
-                {_, k} when k in [:pawn, :knight] ->
-                  []
-
-                _ ->
-                  Utils.get_path({checker, current_player_king_cell})
-                  |> Enum.reject(&(&1 == current_player_king_cell or &1 == checker))
-                  |> Enum.map(&{&1, Map.get(possible_attackers, &1)})
-                  |> Enum.reject(fn _origin, target -> is_nil(target) end)
-              end
-
-            possible_moves_under_single_check =
-              [
-                king_escape_moves,
-                takes_checker,
-                blocks_checker
-              ]
-              |> Enum.flat_map(& &1)
-              |> Map.new()
-
-            {possible_moves_under_single_check, checks}
-        end
-    end
+    {possible_moves, checks}
   end
 
   @spec get_pins(GameState.t()) :: pins()
