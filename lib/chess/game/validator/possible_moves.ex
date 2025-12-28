@@ -1,5 +1,6 @@
 defmodule Chess.Game.Validator.PossibleMoves do
   use Chess.Game.Helper
+  alias Chess.Game.Castling
 
   @typep pinned_piece :: T.cell()
   @typep cells_pinned_to :: T.cells()
@@ -39,6 +40,11 @@ defmodule Chess.Game.Validator.PossibleMoves do
       end)
       |> MapSet.new()
 
+    king_castling_targets =
+      Castling.possible_castling_targets(game_state, all_attackers)
+
+    king_possible_targets = MapSet.union(king_escape_targets, king_castling_targets)
+
     possible_targets =
       all_targets
       |> Enum.filter(fn {origin, _} ->
@@ -54,9 +60,7 @@ defmodule Chess.Game.Validator.PossibleMoves do
         end
       end)
       |> Map.new()
-      |> Map.put(current_player_king_cell, king_escape_targets)
-
-    # also put castling moves here
+      |> Map.put(current_player_king_cell, king_possible_targets)
 
     checks = %{current_player_king_cell => checkers}
 
@@ -92,7 +96,7 @@ defmodule Chess.Game.Validator.PossibleMoves do
                   |> Enum.reject(fn _origin, target -> is_nil(target) end)
               end
 
-            possible_moves =
+            possible_moves_under_single_check =
               [
                 king_escape_moves,
                 takes_checker,
@@ -101,7 +105,7 @@ defmodule Chess.Game.Validator.PossibleMoves do
               |> Enum.flat_map(& &1)
               |> Map.new()
 
-            {possible_moves, checks}
+            {possible_moves_under_single_check, checks}
         end
     end
   end
@@ -251,50 +255,6 @@ defmodule Chess.Game.Validator.PossibleMoves do
       {f - 1, r - 1}
     ]
   end
-
-  @spec king_castling_moves(GameState.t(), T.cell()) :: [T.move()]
-  defp king_castling_moves(game_state = %GameState{board: board}, origin) do
-    {color, :king} = Map.get(board, origin)
-
-    # TODO - filter out castling that is being attacked
-    # to do that we must have knowledge on possible moves
-    king_castling_moves(game_state, origin, color)
-  end
-
-  @spec king_castling_moves(GameState.t(), T.cell(), T.color()) :: [T.move()]
-  defp king_castling_moves(
-         %GameState{board: board, props: props = %Props{white_king_moved: false}},
-         origin,
-         :white
-       ) do
-    [
-      {:a1_rook_moved, {?c, 1}, {?a, 1}},
-      {:h1_rook_moved, {?g, 1}, {?h, 1}}
-    ]
-    |> Enum.filter(fn {prop, _, _} -> Map.get(props, prop) end)
-    |> Enum.reject(fn {_, _, rook_cell} ->
-      Utils.path_obstructed?(board, {origin, rook_cell})
-    end)
-    |> Enum.map(fn {_, target, _} -> {origin, target} end)
-  end
-
-  defp king_castling_moves(
-         %GameState{board: board, props: props = %Props{black_king_moved: false}},
-         origin,
-         :black
-       ) do
-    [
-      {:a8_rook_moved, {?c, 8}, {?a, 8}},
-      {:h8_rook_moved, {?g, 8}, {?h, 8}}
-    ]
-    |> Enum.filter(fn {prop, _, _} -> Map.get(props, prop) end)
-    |> Enum.reject(fn {_, _, rook_cell} ->
-      Utils.path_obstructed?(board, {origin, rook_cell})
-    end)
-    |> Enum.map(fn {_, target, _} -> {origin, target} end)
-  end
-
-  defp king_castling_moves(_, _, _), do: []
 
   @spec rook_possible_targets(GameState.t(), T.cell()) :: [T.cell()]
   defp rook_possible_targets(%GameState{board: board}, origin) do

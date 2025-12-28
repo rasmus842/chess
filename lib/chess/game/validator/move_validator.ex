@@ -3,7 +3,6 @@ defmodule Chess.Game.Validator.MoveValidator do
   use Chess.Game.Helper
   alias Chess.Game.Validator.CorrectColors
   alias Chess.Game.Validator.CorrectPlayer
-  alias Chess.Game.Validator.CastlingValidator
 
   @impl true
   def validate(action) do
@@ -12,8 +11,7 @@ defmodule Chess.Game.Validator.MoveValidator do
          :ok <- validate_piece_exists(action),
          :ok <- CorrectColors.validate(action),
          :ok <- validate_move_possible(action),
-         :ok <- validate_pawn_promotion(action),
-         :ok <- CastlingValidator.validate(action) do
+         :ok <- validate_pawn_promotion(action) do
       :ok
     else
       err -> err

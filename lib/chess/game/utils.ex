@@ -27,7 +27,6 @@ defmodule Chess.Game.Utils do
     end
   end
 
-  @spec has_piece(T.board(), T.cell(), T.color()) :: boolean()
   def has_piece(board, cell, color) do
     case Map.get(board, cell) do
       {c, _k} when c == color -> true
