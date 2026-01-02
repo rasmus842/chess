@@ -42,26 +42,28 @@ defmodule Chess.Game.KingMoveTest do
     end
   end
 
-  describe "King takes" do
-    setup do
-      board = %{
+  @king_takes_board %{
         {?e, 1} => {:white, :king},
         {?e, 2} => {:black, :pawn},
+        {?f, 1} => {:black, :knight},
         {?e, 8} => {:black, :king},
         {?d, 8} => {:white, :bishop}
-      }
+  }
 
-      {:ok, %{board: board}}
-    end
-
-    test "White king takes black pawn", %{board: board} do
+  describe "King takes" do
+    test "White king takes black pawn" do
       move = {{?e, 1}, {?e, 2}}
-      assert_move_is_ok(board, move)
+      assert_move_is_ok(@king_takes_board, move)
     end
 
-    test "Black king takes white bishop", %{board: board} do
+    test "Black king takes white bishop" do
       move = {{?e, 8}, {?d, 8}}
-      assert_move_is_ok(board, move)
+      assert_move_is_ok(@king_takes_board, move)
+    end
+
+    test "King cannot take protected piece" do
+      move = {{?e, 1}, {?f, 1}}
+      assert_move_is_error(@king_takes_board, move)
     end
   end
 end

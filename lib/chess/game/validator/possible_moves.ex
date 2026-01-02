@@ -30,11 +30,14 @@ defmodule Chess.Game.Validator.PossibleMoves do
         atks -> MapSet.new(atks)
       end
 
+    covering_cells = covering_cells(game_state)
+    # dbg(covering_cells)
+
     # king can move to unattacked targets
     king_escape_targets =
       Map.get(all_targets, current_player_king_cell, [])
       |> Enum.reject(fn cell ->
-        Map.get(all_attackers, cell)
+        Map.get(covering_cells, cell)
         |> Enum.map(&Map.get(board, &1))
         |> Enum.any?(fn {col, _} -> col != player end)
       end)
@@ -253,7 +256,50 @@ defmodule Chess.Game.Validator.PossibleMoves do
     |> MapSet.new()
   end
 
-  @spec king_possible_targets(GameState.t(), T.cell()) :: T.cells()
+  @spec covering_cells(GameState.t()) :: T.attacks()
+  defp covering_cells(%GameState{board: board}) do
+    Enum.reduce(board, %{}, fn {origin, piece}, acc ->
+      covered_cells =
+        case piece do
+          nil ->
+            []
+
+          {_, :king} ->
+            king_all_targets(origin)
+            |> Enum.filter(&Utils.cell_in_bounds?/1)
+
+          {color, :pawn} ->
+            pawn_attacks(origin, color)
+            |> Enum.filter(&Utils.cell_in_bounds?/1)
+
+          {_, :knight} ->
+            knight_all_targets(origin)
+            |> Enum.filter(&Utils.cell_in_bounds?/1)
+
+          {_, :rook} ->
+            rook_paths_to(origin)
+            |> Enum.flat_map(& &1)
+            |> Enum.reject(&Utils.move_obstructed?(board, {origin, &1}))
+
+          {_, :bishop} ->
+            bishop_paths_to(origin)
+            |> Enum.flat_map(& &1)
+            |> Enum.reject(&Utils.move_obstructed?(board, {origin, &1}))
+
+          {_, :queen} ->
+            queen_paths_to(origin)
+            |> Enum.flat_map(& &1)
+            |> Enum.reject(&Utils.move_obstructed?(board, {origin, &1}))
+        end
+        |> Enum.reject(&(&1 == origin))
+
+      Enum.reduce(covered_cells, acc, fn covered_cell, acc2 ->
+        Map.update(acc2, covered_cell, MapSet.new([origin]), &MapSet.put(&1, origin))
+      end)
+    end)
+  end
+
+  @spec king_possible_targets(GameState.t(), T.cell()) :: [T.cell()]
   defp king_possible_targets(%GameState{board: board}, origin) do
     {color, :king} = Map.get(board, origin)
 
@@ -392,8 +438,8 @@ defmodule Chess.Game.Validator.PossibleMoves do
 
   defp pawn_attacks(_origin = {f, r}, :black) do
     [
-      {f + 1, r + 1},
-      {f - 1, r + 1}
+      {f + 1, r - 1},
+      {f - 1, r - 1}
     ]
   end
 
