@@ -16,7 +16,7 @@ defmodule Chess.Game.Validator.PossibleMoves do
       ) do
     pins = get_pins(game_state)
     all_targets = all_targets(game_state)
-    all_attackers = possible_attackers(all_targets)
+    all_attackers = possible_attackers(game_state, all_targets)
 
     current_player_king_cell =
       case player do
@@ -201,10 +201,27 @@ defmodule Chess.Game.Validator.PossibleMoves do
     end
   end
 
-  @spec possible_attackers(T.targets()) :: T.attacks()
-  defp possible_attackers(possible_targets) do
+  @spec possible_attackers(GameState.t(), T.targets()) :: T.attacks()
+  defp possible_attackers(%GameState{board: board}, possible_targets) do
     Enum.reduce(possible_targets, %{}, fn {attacker, targets}, acc ->
-      Enum.reduce(targets, acc, fn target, acc2 ->
+      refined_targets =
+        case Map.get(board, attacker) do
+          {color, :pawn} ->
+            # Pawn targets must be recalculated here because:
+            # 1) To validate castling path is not attacked by pawn
+            # 2) to validate safe squares for king to move to
+            # Include only pawn attacks, not advances
+            # do not filter empty squares as is case for normal
+            # pawn targets
+            pawn_attacks(attacker, color)
+            |> Enum.filter(&Utils.cell_in_bounds?/1)
+            |> Enum.reject(&Utils.has_piece(board, &1, color))
+
+          _ ->
+            targets
+        end
+
+      Enum.reduce(refined_targets, acc, fn target, acc2 ->
         Map.update(acc2, target, MapSet.new([attacker]), &MapSet.put(&1, attacker))
       end)
     end)
@@ -362,6 +379,21 @@ defmodule Chess.Game.Validator.PossibleMoves do
       {f, r - 2},
       {f + 1, r - 1},
       {f - 1, r - 1}
+    ]
+    |> Enum.filter(&Utils.cell_in_bounds?/1)
+  end
+
+  defp pawn_attacks(_origin = {f, r}, :white) do
+    [
+      {f + 1, r + 1},
+      {f - 1, r + 1}
+    ]
+  end
+
+  defp pawn_attacks(_origin = {f, r}, :black) do
+    [
+      {f + 1, r + 1},
+      {f - 1, r + 1}
     ]
   end
 
