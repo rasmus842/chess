@@ -1,4 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
+import PhoenixChannelDemo from "../components/PhoenixChannelDemo";
 
 type DemoTodo = {
   userId: number;
@@ -28,7 +29,7 @@ export default function DemoApi() {
   const errorMessage = error instanceof Error ? error.message : "Unknown error";
 
   return (
-    <section className="space-y-8">
+    <section className="space-y-10">
       <header className="space-y-3">
         <p className="text-xs font-semibold uppercase tracking-[0.35em] text-emerald-700">Demo</p>
         <h1 className="text-3xl font-semibold text-slate-900 sm:text-4xl">
@@ -99,6 +100,8 @@ export default function DemoApi() {
           </div>
         </div>
       </div>
+
+      <PhoenixChannelDemo />
     </section>
   );
 }
