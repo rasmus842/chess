@@ -1,22 +1,23 @@
 import socketClient from "@/phoenix_socket";
 import { Channel } from "phoenix";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 
-export const useChannel = (topic: string, channelParams?: object) => {
+export const useChannel = (topic: string, joinParams?: object) => {
   const [channel, setChannel] = useState<Channel | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    let mounted = true;
+    let cancelled = false;
 
     async function join() {
       try {
-        const ch = await socketClient.join(topic, channelParams);
-        if (mounted) {
-          setChannel(ch);
+        const ch = await socketClient.join(topic, joinParams);
+        if (cancelled) {
+          return;
         }
+        setChannel(ch);
       } catch (e) {
-        if (mounted) {
+        if (!cancelled) {
           setChannel(null);
           setError(`Failed to subscribe to topic ${topic}`);
         }
@@ -25,9 +26,10 @@ export const useChannel = (topic: string, channelParams?: object) => {
     join();
 
     return () => {
-      mounted = false;
+      cancelled = true;
+      socketClient.release(topic);
     };
-  }, [topic, channelParams]);
+  }, [topic, joinParams]);
 
   return { channel: channel, error: error };
 };

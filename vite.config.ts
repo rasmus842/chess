@@ -6,4 +6,12 @@ import tailwindcss from "@tailwindcss/vite";
 // https://vite.dev/config/
 export default defineConfig({
   plugins: [react(), tsconfigPaths(), tailwindcss()],
+  server: {
+    proxy: {
+      "/socket": {
+        target: "http://localhost:4000",
+        ws: true,
+      },
+    },
+  },
 });

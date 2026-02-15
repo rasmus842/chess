@@ -1,6 +1,7 @@
 import { NavLink, Route, Routes } from "react-router-dom";
 import DemoApi from "./pages/DemoApi";
 import Home from "./pages/Home";
+import DemoSocket from "./pages/DemoSocket";
 
 const navLinkClass = ({ isActive }: { isActive: boolean }) =>
   [
@@ -36,6 +37,7 @@ function App() {
           <Routes>
             <Route path="/" element={<Home />} />
             <Route path="/demo" element={<DemoApi />} />
+            <Route path="/demo-socket" element={<DemoSocket />} />
           </Routes>
         </main>
 

@@ -1,5 +1,4 @@
 import { useQuery } from "@tanstack/react-query";
-import PhoenixChannelDemo from "../components/PhoenixChannelDemo";
 
 type DemoTodo = {
   userId: number;
@@ -100,8 +99,6 @@ export default function DemoApi() {
           </div>
         </div>
       </div>
-
-      <PhoenixChannelDemo />
     </section>
   );
 }
