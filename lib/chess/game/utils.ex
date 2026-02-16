@@ -1,8 +1,8 @@
 defmodule Chess.Game.Utils do
   alias Chess.Game.Types, as: T
 
-  @spec parse_move(String.t()) :: T.result(T.move())
-  def parse_move(<<f1::utf8, r1::utf8, f2::utf8, r2::utf8>>)
+  @spec parse_move({String.t(), String.t()}) :: T.result(T.move())
+  def parse_move(<<f1::utf8, r1::utf8>>, <<f2::utf8, r2::utf8>>)
       when f1 in ?a..?h and f2 in ?a..?h and r1 in ?1..?8 and r2 in ?1..?8 do
     move = {
       {f1, r1 - ?0},
@@ -27,13 +27,26 @@ defmodule Chess.Game.Utils do
     end
   end
 
+  @spec parse_kind(String.t()) :: T.kind() | nil
+  def parse_kind(kind) do
+    case kind do
+      "pawn" -> :pawn
+      "rook" -> :rook
+      "knight" -> :knight
+      "bishop" -> :bishop
+      "queen" -> :queen
+      "king" -> :king
+      _ -> nil
+    end
+  end
+
   def has_piece(board, cell, color) do
     case Map.get(board, cell) do
       {c, _k} when c == color -> true
       _ -> false
     end
   end
-  
+
   @spec has_piece(T.board(), T.cell(), T.color(), T.kind()) :: boolean()
   def has_piece(board, cell, color, kind) do
     case Map.get(board, cell) do

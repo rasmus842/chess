@@ -18,7 +18,10 @@ defmodule Chess.Application do
       # {Chess.Worker, arg},
       # Start to serve requests, typically the last entry
       ChessWeb.Endpoint,
-      {DynamicSupervisor, name: ChessGameSupervisor}
+
+      # Managing the games
+      {Registry, keys: :unique, name: Chess.GameRegistry},
+      {DynamicSupervisor, name: Chess.GameSupervisor}
     ]
 
     # See https://hexdocs.pm/elixir/Supervisor.html

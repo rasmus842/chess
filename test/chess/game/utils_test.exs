@@ -16,9 +16,9 @@ defmodule Chess.Game.UtilsTest do
 
   test "Parses valid move" do
     valid_cases = %{
-      "a2a3" => {{?a, 2}, {?a, 3}},
-      "h8b7" => {{?h, 8}, {?b, 7}},
-      "b1c3" => {{?b, 1}, {?c, 3}}
+      {"a2", "a3"} => {{?a, 2}, {?a, 3}},
+      {"h8", "b7"} => {{?h, 8}, {?b, 7}},
+      {"b1", "c3"} => {{?b, 1}, {?c, 3}}
     }
 
     for {input, expected} <- valid_cases do
@@ -27,7 +27,7 @@ defmodule Chess.Game.UtilsTest do
   end
 
   test "Does not parse invalid move" do
-    invalid_cases = ["j8b7", "asdf", 2, :asdfg, "invalid"]
+    invalid_cases = [{"j8", "b7"}, {"as", "df"}]
 
     for input <- invalid_cases do
       assert parse_move(input) == {:error, "Invalid move"}
