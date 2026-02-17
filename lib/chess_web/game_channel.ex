@@ -21,7 +21,7 @@ defmodule ChessWeb.GameChannel do
   def handle_in(
         "move",
         %{
-          "player" => player,
+          "player" => _player,
           "from" => from,
           "to" => to
         } = payload,
@@ -30,21 +30,12 @@ defmodule ChessWeb.GameChannel do
     game_id = socket.assigns.game_id
     Logger.debug("Got move event for game=#{game_id}, payload=#{inspect(payload)}")
 
-    move = Utils.parse_move({from, to})
-
-    pawn_promotion =
-      case Map.get(payload, "pawn_promotion") do
-        nil -> nil
-        kind -> Utils.parse_kind(kind)
-      end
-
-    params = %{player: player, pawn_promotion: pawn_promotion}
-
-    case GameServer.make_move(game_id, move, params) do
-      {:ok, state} ->
-        broadcast!(socket, "move_made", %{test: "test"})
-        {:reply, {:ok, state}, socket}
-
+    with {:ok, move} <- Utils.parse_move({from, to}),
+         params <- get_params(payload),
+         {:ok, new_state} <- GameServer.make_move(game_id, move, params) do
+      broadcast!(socket, "move_made", %{state: new_state})
+      {:reply, {:ok, "ok"}, socket}
+    else
       {:error, _reason} = err ->
         {:reply, err, socket}
     end
@@ -53,5 +44,15 @@ defmodule ChessWeb.GameChannel do
   def handle_in("move", payload, socket) do
     Logger.warning("Unexpected payload for move: #{inspect(payload)}")
     {:reply, {:error, %{reason: "bad payload"}}, socket}
+  end
+
+  defp get_params(%{"player" => player} = payload) do
+    pawn_promotion =
+      case Map.get(payload, "pawn_promotion") do
+        nil -> nil
+        kind -> Utils.parse_kind(kind)
+      end
+
+    %{player: player, pawn_promotion: pawn_promotion}
   end
 end

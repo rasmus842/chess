@@ -2,7 +2,7 @@ defmodule Chess.Game.Utils do
   alias Chess.Game.Types, as: T
 
   @spec parse_move({String.t(), String.t()}) :: T.result(T.move())
-  def parse_move(<<f1::utf8, r1::utf8>>, <<f2::utf8, r2::utf8>>)
+  def parse_move({<<f1::utf8, r1::utf8>>, <<f2::utf8, r2::utf8>>})
       when f1 in ?a..?h and f2 in ?a..?h and r1 in ?1..?8 and r2 in ?1..?8 do
     move = {
       {f1, r1 - ?0},
