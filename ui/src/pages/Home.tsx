@@ -1,3 +1,4 @@
+import { Link } from "react-router-dom";
 import ChessBoard from "../components/ChessBoard";
 
 export default function Home() {
@@ -11,6 +12,9 @@ export default function Home() {
           <li>Sign-in and Login functionality</li>
           <li>Chat</li>
           <li>two players and others are viewers - all can access chat</li>
+          <li>
+            <Link to="/game/new">Create New Game</Link>
+          </li>
         </ul>
       </div>
       <div className="relative">
