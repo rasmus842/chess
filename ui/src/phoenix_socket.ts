@@ -1,13 +1,15 @@
 import { Socket, Channel } from "phoenix";
 
+type ChannelWithState = [Channel, any];
+
 /**
  * TODO: move phoenix socket client and useChannel into a separate project
  * Also. wrap the socket client/useChannel in some interface
  */
 class BackendSocketClient {
   private socket: Socket | null = null;
-  private channels = new Map<string, Channel>();
-  private joinings = new Map<string, Promise<Channel>>();
+  private channels = new Map<string, ChannelWithState>();
+  private joinings = new Map<string, Promise<ChannelWithState>>();
   private refCount = new Map<string, number>();
   private pendingLeave = new Map<string, number>();
 
@@ -27,7 +29,7 @@ class BackendSocketClient {
 
   disconnect() {
     console.info(`DISCONNECTING socket`);
-    for (const channel of this.channels.values()) {
+    for (const [channel] of this.channels.values()) {
       channel.leave();
     }
     this.channels.clear();
@@ -38,7 +40,7 @@ class BackendSocketClient {
     this.socket = null;
   }
 
-  async join(topic: string, channelParams?: object): Promise<Channel> {
+  async join(topic: string, channelParams?: object): Promise<ChannelWithState> {
     if (!this.socket) {
       throw new Error("Socket not connected. Call connect() first.");
     }
@@ -52,14 +54,15 @@ class BackendSocketClient {
       return inFlight;
     }
     const channel = this.socket.channel(topic, channelParams ?? {});
-    const joining = new Promise<Channel>((resolve, reject) => {
+    const joining = new Promise<ChannelWithState>((resolve, reject) => {
       channel
         .join()
         .receive("ok", (resp) => {
           console.info(`JOINED CHANNEL ${topic}, params:`, resp);
-          this.channels.set(topic, channel);
+          const channelWithState: ChannelWithState = [channel, resp];
+          this.channels.set(topic, channelWithState);
           this.joinings.delete(topic);
-          resolve(channel);
+          resolve(channelWithState);
         })
         .receive("error", (err) => {
           console.error(`ERROR joining channel ${topic}`, err);
@@ -98,17 +101,20 @@ class BackendSocketClient {
       }
       console.info(`LEAVE channel ${topic}`);
 
-      let channel = null;
+      let channelWithState = null;
       const existing = this.channels.get(topic);
       if (existing) {
-        channel = existing;
+        channelWithState = existing;
       } else {
         const joining = this.joinings.get(topic);
         if (joining) {
-          channel = await joining.catch(() => null);
+          channelWithState = await joining.catch(() => null);
         }
       }
-      channel?.leave();
+      if (channelWithState) {
+        const [channel] = channelWithState;
+        channel?.leave();
+      }
       this.channels.delete(topic);
       this.joinings.delete(topic);
     }, 1000);

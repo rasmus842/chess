@@ -2,8 +2,9 @@ import socketClient from "@/phoenix_socket";
 import { Channel } from "phoenix";
 import { useEffect, useState } from "react";
 
-export const useChannel = (topic: string, joinParams?: object) => {
+export function useChannel<T>(topic: string, joinParams?: object) {
   const [channel, setChannel] = useState<Channel | null>(null);
+  const [state, setState] = useState<T | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -11,11 +12,12 @@ export const useChannel = (topic: string, joinParams?: object) => {
 
     async function join() {
       try {
-        const ch = await socketClient.join(topic, joinParams);
+        const [ch, st] = await socketClient.join(topic, joinParams);
         if (cancelled) {
           return;
         }
         setChannel(ch);
+        setState(st);
       } catch (e) {
         if (!cancelled) {
           setChannel(null);
@@ -31,5 +33,5 @@ export const useChannel = (topic: string, joinParams?: object) => {
     };
   }, [topic, joinParams]);
 
-  return { channel: channel, error: error };
-};
+  return [channel, state, setState, error];
+}
