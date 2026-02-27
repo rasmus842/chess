@@ -8,9 +8,8 @@ defmodule ChessWeb.GameChannel do
   def join("game:" <> game_id, _params, socket) do
     case GameManager.ensure_started(game_id) do
       {:ok, _pid} ->
-        state = GameServer.get_state(game_id)
         socket = assign(socket, :game_id, game_id)
-        {:ok, state, socket}
+        {:ok, %{}, socket}
 
       {:error, :not_found} ->
         {:error, %{reason: "game_not_found"}}
@@ -30,6 +29,19 @@ defmodule ChessWeb.GameChannel do
     else
       {:error, _reason} = err ->
         {:reply, err, socket}
+    end
+  end
+
+  def handle_in("get_state", _payload, socket) do
+    game_id = socket.assigns.game_id
+
+    case GameManager.ensure_started(game_id) do
+      {:ok, _pid} ->
+        state = GameServer.get_state(game_id)
+        {:reply, {:ok, state}, socket}
+
+      {:error, :not_found} ->
+        {:reply, {:error, %{reason: "game_not_found"}}, socket}
     end
   end
 

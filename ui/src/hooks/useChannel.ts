@@ -1,27 +1,36 @@
-import socketClient from "@/phoenix_socket";
+import { useSocketClient } from "@/socket/useSocketClient";
 import { Channel } from "phoenix";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
-export function useChannel<T>(topic: string, joinParams?: object) {
+export function useChannel<P extends object>(topic: string, params?: P) {
+  const socketClient = useSocketClient();
   const [channel, setChannel] = useState<Channel | null>(null);
-  const [state, setState] = useState<T | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  // React fails to check javascript objects correctly. memoize to avoid rerendering
+  const paramsKey = useMemo(() => JSON.stringify(params ?? {}), [params]);
 
   useEffect(() => {
     let cancelled = false;
 
     async function join() {
+      setIsLoading(true);
+      setError(null);
       try {
-        const [ch, st] = await socketClient.join(topic, joinParams);
-        if (cancelled) {
-          return;
+        const ch = await socketClient.join(topic, params ?? {});
+        if (!cancelled) {
+          setChannel(ch);
         }
-        setChannel(ch);
-        setState(st);
       } catch (e) {
         if (!cancelled) {
+          console.error(`Failed to join Channel{topic=${topic}, params=${params}}`, e);
           setChannel(null);
-          setError(`Failed to subscribe to topic ${topic}`);
+          setError(e instanceof Error ? e.message : "Failed to join channel");
+        }
+      } finally {
+        if (!cancelled) {
+          setIsLoading(false);
         }
       }
     }
@@ -31,7 +40,7 @@ export function useChannel<T>(topic: string, joinParams?: object) {
       cancelled = true;
       socketClient.release(topic);
     };
-  }, [topic, joinParams]);
+  }, [socketClient, topic, paramsKey]);
 
-  return [channel, state, setState, error];
+  return { channel, isLoading, error };
 }

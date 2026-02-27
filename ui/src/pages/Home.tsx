@@ -1,5 +1,5 @@
+import ChessBoard from "@/components/board/ChessBoard";
 import { Link } from "react-router-dom";
-import ChessBoard from "../components/ChessBoard";
 
 export default function Home() {
   return (
