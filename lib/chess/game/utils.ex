@@ -16,7 +16,13 @@ defmodule Chess.Game.Utils do
 
   @spec cell_to_string(T.cell()) :: String.t()
   def cell_to_string(_cell = {file, rank}) when file in ?a..?h and rank in 1..8 do
-    <<file::utf8, rank + ?0>>
+    <<file>> <> Integer.to_string(rank)
+  end
+
+  @spec piece_to_string(T.piece()) :: String.t()
+  def piece_to_string(_piece = {color, kind})
+      when (color == :white or color == :black) and is_atom(kind) do
+    Atom.to_string(color) <> "_" <> kind_to_string(kind)
   end
 
   @spec other_player(T.player()) :: T.player()
@@ -37,6 +43,18 @@ defmodule Chess.Game.Utils do
       "queen" -> :queen
       "king" -> :king
       _ -> nil
+    end
+  end
+
+  @spec kind_to_string(T.kind()) :: String.t()
+  def kind_to_string(kind) when is_atom(kind) do
+    case kind do
+      :pawn -> "pawn"
+      :rook -> "rook"
+      :knight -> "knight"
+      :bishop -> "bishop"
+      :queen -> "queen"
+      :king -> "king"
     end
   end
 

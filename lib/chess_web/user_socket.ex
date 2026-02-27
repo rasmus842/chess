@@ -1,7 +1,7 @@
 defmodule ChessWeb.UserSocket do
   use Phoenix.Socket
 
-  channel "game", ChessWeb.GameChannel
+  channel "game:*", ChessWeb.GameChannel
   
   @doc """
   Validate socket connections - must be authenticated

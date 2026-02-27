@@ -64,3 +64,42 @@ defmodule Chess.Game.GameState do
     end
   end
 end
+
+defimpl Jason.Encoder, for: Chess.Game.GameState do
+  alias Chess.Game.Utils
+
+  def encode(data, opts) do
+    data
+    |> Map.from_struct()
+    |> Map.update!(:board, &serialize_board/1)
+    |> Map.update!(:possible_moves, &serialize_cell_assotiations/1)
+    |> Map.update!(:checks, &serialize_cell_assotiations/1)
+    |> Jason.Encode.map(opts)
+  end
+
+  defp serialize_board(board) when is_map(board) do
+    board
+    |> Enum.reduce(%{}, fn
+      {_cell, nil}, acc ->
+        acc
+
+      {cell, piece}, acc ->
+        Map.put(acc, Utils.cell_to_string(cell), Utils.piece_to_string(piece))
+    end)
+  end
+
+  defp serialize_cell_assotiations(cell_associations) when is_map(cell_associations) do
+    cell_associations
+    |> Enum.reduce(%{}, fn
+      {cell, cell_set}, acc ->
+        Map.put(acc, Utils.cell_to_string(cell), serialize_cell_set(cell_set))
+    end)
+  end
+
+  defp serialize_cell_set(%MapSet{} = cell_set) do
+    cell_set
+    |> MapSet.to_list()
+    |> Enum.map(&Utils.cell_to_string/1)
+    |> Enum.sort()
+  end
+end

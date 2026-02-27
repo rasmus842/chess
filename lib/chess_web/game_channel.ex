@@ -10,7 +10,7 @@ defmodule ChessWeb.GameChannel do
       {:ok, _pid} ->
         state = GameServer.get_state(game_id)
         socket = assign(socket, :game_id, game_id)
-        {:ok, %{state: state}, socket}
+        {:ok, state, socket}
 
       {:error, :not_found} ->
         {:error, %{reason: "game_not_found"}}
@@ -25,7 +25,7 @@ defmodule ChessWeb.GameChannel do
     with {:ok, move} <- parse_move(payload),
          {:ok, params} <- parse_params(payload),
          {:ok, new_state} <- GameServer.make_move(game_id, move, params) do
-      broadcast!(socket, "move_made", %{state: new_state})
+      broadcast!(socket, "move_made", new_state)
       {:reply, {:ok, "move accepted"}, socket}
     else
       {:error, _reason} = err ->

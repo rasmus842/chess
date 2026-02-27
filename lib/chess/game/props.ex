@@ -55,3 +55,25 @@ defmodule Chess.Game.Props do
     |> struct(attrs)
   end
 end
+
+defimpl Jason.Encoder, for: Chess.Game.Props do
+  alias Chess.Game.Utils
+
+  def encode(props, opts) do
+    props
+    |> Map.from_struct()
+    |> Map.update!(:white_king, &cell_or_nil/1)
+    |> Map.update!(:black_king, &cell_or_nil/1)
+    |> Map.update!(:active_en_passant, &en_passant_or_nil/1)
+    |> Jason.Encode.map(opts)
+  end
+
+  defp cell_or_nil(nil), do: nil
+  defp cell_or_nil(cell), do: Utils.cell_to_string(cell)
+
+  defp en_passant_or_nil(nil), do: nil
+
+  defp en_passant_or_nil({pawn, target} = _en_passant) do
+    %{"pawn" => Utils.cell_to_string(pawn), "target" => Utils.cell_to_string(target)}
+  end
+end
