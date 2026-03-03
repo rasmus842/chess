@@ -1,13 +1,14 @@
-import { files, ranks, type BoardMap, type Cell } from "./types";
+import { files, ranks } from "./schemas";
+import { type Board, type Cell } from "./types";
 import { initial_board, isLightSquare } from "./utils";
 
 type ChessBoardProps = {
-  board?: BoardMap;
+  board?: Board;
 };
 
 export default function ChessBoard({ board = initial_board }: ChessBoardProps) {
   return (
-    <div className="m-8 grid grid-cols-8 grid-rows-8 overflow-auto border border-solid border-[#7c5c3b]">
+    <div className="m-8 inline-grid grid-cols-8 grid-rows-8 border border-solid border-[#7c5c3b]">
       {ranks.flatMap((rank) =>
         files.map((file, index) => {
           const key = `${file}${rank}` as Cell;
@@ -24,7 +25,13 @@ export default function ChessBoard({ board = initial_board }: ChessBoardProps) {
               data-row={rank}
               data-col={file}
             >
-              {piece ? <img src={`/images/${piece}.svg`} alt="Chess piece" /> : null}
+              {piece ? (
+                <img
+                  src={`/images/${piece}.svg`}
+                  alt={`Chess piece ${piece}`}
+                  className="max-h-full max-w-full"
+                />
+              ) : null}
             </div>
           );
         }),

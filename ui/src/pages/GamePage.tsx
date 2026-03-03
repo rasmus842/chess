@@ -1,21 +1,16 @@
 import { useParams } from "react-router-dom";
 import ChessBoard from "../components/board/ChessBoard";
 import { useChannel } from "../hooks/useChannel";
-import type { BoardMap, GameState } from "@/components/board/types";
+import { type Board } from "@/components/board/types";
 import { useEffect, useState } from "react";
-
-type SerializedServerState = {
-  game_id: string;
-  white: string;
-  black: string;
-  game_state: GameState;
-};
+import { GameSchema, GameStateSchema } from "@/components/board/schemas";
+import z from "zod";
 
 export default function GamePage() {
   const { gameId } = useParams();
   const topic = `game:${gameId ?? "missing"}`;
   const { channel, isLoading, error } = useChannel(topic);
-  const [board, setBoard] = useState<BoardMap | null>(null);
+  const [board, setBoard] = useState<Board | null>(null);
 
   useEffect(() => {
     if (!channel) {
@@ -23,10 +18,16 @@ export default function GamePage() {
     }
     channel
       .push("get_state", {})
-      .receive("ok", (state: GameState) => {
-        console.log("Got state: ", state);
-        console.log("Setting board: ", state.board);
-        setBoard(state.board!);
+      .receive("ok", (response) => {
+        console.log("get_state response: ", response);
+        try {
+          const game = GameSchema.parse(response);
+          setBoard(game.game_state.board);
+        } catch (error) {
+          if (error instanceof z.ZodError) {
+            console.error("Failed to parse game state", error);
+          }
+        }
       })
       .receive("error", (e) => {
         console.log("Got error:", e);
@@ -37,7 +38,7 @@ export default function GamePage() {
   }, [channel]);
 
   return (
-    <section className="p-6">
+    <section className="p-6 relative">
       <h1 className="text-3xl font-bold">Game</h1>
       {gameId ? <p className="mt-2 text-sm">Game ID: {gameId}</p> : null}
       {isLoading ? <p className="mt-4 text-sm">Loading game state...</p> : null}

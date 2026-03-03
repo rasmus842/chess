@@ -1,4 +1,5 @@
 import * as t from "./types";
+import * as s from "./schemas";
 
 export function isLightSquare(rank: t.Rank, fileIndex: number) {
   return (rank + fileIndex) % 2 === 1;
@@ -20,10 +21,10 @@ const pieceForInitialPosition = (file: t.File, rank: t.Rank): t.Piece | null => 
   return null;
 };
 
-export const initial_board: t.BoardMap = (() => {
-  const boardMap: t.BoardMap = {};
-  for (const file of t.files) {
-    for (const rank of t.ranks) {
+export const initial_board: t.Board = (() => {
+  const boardMap: t.Board = {};
+  for (const file of s.files) {
+    for (const rank of s.ranks) {
       const piece = pieceForInitialPosition(file, rank);
       if (piece) {
         const cell = `${file}${rank}` as t.Cell;
