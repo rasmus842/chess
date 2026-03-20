@@ -3,39 +3,32 @@ import ChessBoard from "../components/board/ChessBoard";
 import { useChannel } from "../hooks/useChannel";
 import { type Board } from "@/components/board/types";
 import { useEffect, useState } from "react";
-import { GameSchema, GameStateSchema } from "@/components/board/schemas";
-import z from "zod";
+import { GameSchema } from "@/components/board/schemas";
 
 export default function GamePage() {
   const { gameId } = useParams();
   const topic = `game:${gameId ?? "missing"}`;
-  const { channel, isLoading, error } = useChannel(topic);
+  const { push, onEvent } = useChannel(topic);
   const [board, setBoard] = useState<Board | null>(null);
+  const [isLoading, setLoading] = useState<boolean>(false);
+  const [error, setError] = useState<any>(null);
 
   useEffect(() => {
-    if (!channel) {
-      return;
+    async function get_state() {
+      setLoading(true);
+      setError(null);
+      const response = await push("get_state");
+      if (!response.isOk) {
+        setError(response.reply);
+        setLoading(false);
+      } else {
+        const state = GameSchema.parse(response);
+        setBoard(state.game_state.board);
+        setLoading(false);
+      }
     }
-    channel
-      .push("get_state", {})
-      .receive("ok", (response) => {
-        console.log("get_state response: ", response);
-        try {
-          const game = GameSchema.parse(response);
-          setBoard(game.game_state.board);
-        } catch (error) {
-          if (error instanceof z.ZodError) {
-            console.error("Failed to parse game state", error);
-          }
-        }
-      })
-      .receive("error", (e) => {
-        console.log("Got error:", e);
-      })
-      .receive("timeout", (e) => {
-        console.log("Got timeout:", e);
-      });
-  }, [channel]);
+    get_state();
+  }, [push, onEvent]);
 
   return (
     <section className="p-6 relative">

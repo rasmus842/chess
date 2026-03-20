@@ -1,6 +1,13 @@
 import { useSocketClient } from "@/socket/useSocketClient";
 import { Channel } from "phoenix";
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
+
+const DEFAULT_TIMEOUT_MS = 5_000;
+
+export type PushResult = {
+  isOk: boolean;
+  reply: unknown;
+};
 
 export function useChannel<P extends object>(topic: string, params?: P) {
   const socketClient = useSocketClient();
@@ -42,5 +49,38 @@ export function useChannel<P extends object>(topic: string, params?: P) {
     };
   }, [socketClient, topic, paramsKey]);
 
-  return { channel, isLoading, error };
+  const push = useCallback(
+    (event: string, payload?: object): Promise<PushResult> => {
+      if (!channel) {
+        return Promise.resolve({ isOk: false, reply: "Channel not open" });
+      }
+      return new Promise((resolve) => {
+        channel
+          .push(event, payload ?? {}, DEFAULT_TIMEOUT_MS)
+          .receive("ok", (reply) => resolve({ isOk: true, reply }))
+          .receive("error", (reply) => resolve({ isOk: false, reply }))
+          .receive("timeout", () => {
+            console.error(`Failed to push event ${event} to ${topic}, got timeout`);
+            resolve({ isOk: false, reply: "Timeout" });
+          });
+      });
+    },
+    [channel, topic],
+  );
+
+  const onEvent = useCallback(
+    (event: string, handler: (payload: unknown) => void) => {
+      if (!channel) {
+        // no-op unsubscribe
+        return () => {};
+      }
+      channel.on(event, handler);
+      return () => {
+        // return an unsubscibe function
+        channel.off(event);
+      };
+    },
+    [channel],
+  );
+  return { channel, isLoading, error, push, onEvent };
 }
