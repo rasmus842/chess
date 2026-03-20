@@ -1,10 +1,15 @@
 {
+<<<<<<< HEAD
   "name": "chess-web",
+=======
+  "name": "ui",
+>>>>>>> cbcf649363eb7509a3d9d85de772457d54973601
   "private": true,
   "version": "0.0.0",
   "type": "module",
   "scripts": {
     "dev": "vite",
+<<<<<<< HEAD
     "build": "tsc -b && vite build",
     "test:e2e": "playwright test",
     "test:e2e-headed": "playwright test --headed",
@@ -43,5 +48,13 @@
     "typescript-eslint": "^8.46.4",
     "vite": "^7.2.4",
     "vite-tsconfig-paths": "^6.0.5"
+=======
+    "build": "tsc && vite build",
+    "preview": "vite preview"
+  },
+  "devDependencies": {
+    "typescript": "~5.9.3",
+    "vite": "^7.2.4"
+>>>>>>> cbcf649363eb7509a3d9d85de772457d54973601
   }
 }
