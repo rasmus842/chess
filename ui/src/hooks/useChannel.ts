@@ -68,19 +68,22 @@ export function useChannel<P extends object>(topic: string, params?: P) {
     [channel, topic],
   );
 
-  const onEvent = useCallback(
-    (event: string, handler: (payload: unknown) => void) => {
-      if (!channel) {
-        // no-op unsubscribe
-        return () => {};
-      }
-      channel.on(event, handler);
-      return () => {
-        // return an unsubscibe function
-        channel.off(event);
-      };
-    },
-    [channel],
-  );
-  return { channel, isLoading, error, push, onEvent };
+  return { channel, isLoading, error, push };
+}
+
+export function useChannelEvent(
+  channel: Channel | null,
+  event: string,
+  handler: (payload: unknown) => void,
+) {
+  useEffect(() => {
+    if (!channel) {
+      return;
+    }
+    const ref = channel.on(event, handler);
+
+    return () => {
+      channel.off(event, ref);
+    };
+  }, [channel, event, handler]);
 }

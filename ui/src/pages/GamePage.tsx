@@ -1,19 +1,22 @@
 import { useParams } from "react-router-dom";
 import ChessBoard from "../components/board/ChessBoard";
-import { useChannel } from "../hooks/useChannel";
-import { type Board } from "@/components/board/types";
+import { useChannel, useChannelEvent } from "../hooks/useChannel";
+import { type GameState } from "@/components/board/types";
 import { useEffect, useState } from "react";
 import { GameSchema } from "@/components/board/schemas";
 
 export default function GamePage() {
   const { gameId } = useParams();
   const topic = `game:${gameId ?? "missing"}`;
-  const { push, onEvent } = useChannel(topic);
-  const [board, setBoard] = useState<Board | null>(null);
+  const { channel, push } = useChannel(topic);
+  const [gameState, setGameState] = useState<GameState | null>(null);
   const [isLoading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<any>(null);
 
   useEffect(() => {
+    if (!channel) {
+      return;
+    }
     async function get_state() {
       setLoading(true);
       setError(null);
@@ -21,15 +24,19 @@ export default function GamePage() {
       console.log("got response", response);
       if (!response.isOk) {
         setError(response.reply);
-        setLoading(false);
       } else {
-        const state = GameSchema.parse(response.reply);
-        setBoard(state.game_state.board);
-        setLoading(false);
+        const game = GameSchema.parse(response.reply);
+        setGameState(game.game_state);
       }
+      setLoading(false);
     }
     get_state();
-  }, [push, onEvent]);
+  }, [channel, push]);
+
+  useChannelEvent(channel, "move_made", (payload) => {
+    const updated_game = GameSchema.parse(payload);
+    setGameState(updated_game.game_state);
+  });
 
   return (
     <section className="p-6 relative">
@@ -37,7 +44,7 @@ export default function GamePage() {
       {gameId ? <p className="mt-2 text-sm">Game ID: {gameId}</p> : null}
       {isLoading ? <p className="mt-4 text-sm">Loading game state...</p> : null}
       {error ? <p className="mt-4 text-sm text-red-600">{error}</p> : null}
-      {board ? <ChessBoard board={board} /> : null}
+      {gameState ? <ChessBoard board={gameState.board} /> : null}
     </section>
   );
 }
