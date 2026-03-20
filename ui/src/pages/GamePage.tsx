@@ -18,11 +18,12 @@ export default function GamePage() {
       setLoading(true);
       setError(null);
       const response = await push("get_state");
+      console.log("got response", response);
       if (!response.isOk) {
         setError(response.reply);
         setLoading(false);
       } else {
-        const state = GameSchema.parse(response);
+        const state = GameSchema.parse(response.reply);
         setBoard(state.game_state.board);
         setLoading(false);
       }
