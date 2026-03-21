@@ -4,10 +4,10 @@ defmodule ChessWeb.GameController do
 
   def show(conn, %{"game_id" => game_id}) do
     with {:ok, _pid} <- GameManager.ensure_started(game_id),
-         state <- GameServer.get_state(game_id) do
+         game <- GameServer.get_game(game_id) do
       conn
       |> put_status(:ok)
-      |> json(state)
+      |> json(game)
     else
       {:error, reason} ->
         conn

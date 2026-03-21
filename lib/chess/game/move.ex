@@ -55,14 +55,23 @@ defmodule Chess.Game.Move do
 
   @spec remove_en_passant_pawn(T.board(), Action.t()) :: T.board()
   defp remove_en_passant_pawn(board, %Action{
-         game_state: %GameState{props: props}
+         game_state: %GameState{props: props},
+         move: {origin, target}
        }) do
     case Map.get(props, :active_en_passant) do
-      nil ->
-        board
+      {en_passant_pawn_cell, en_passant_target}
+      when en_passant_target === target ->
+        {mover_color, kind} = Map.get(board, origin)
+        {color, :pawn} = Map.get(board, en_passant_pawn_cell)
 
-      {en_passant_pawn, _en_passant_target} ->
-        Map.delete(board, en_passant_pawn)
+        if kind !== :pawn || mover_color === color do
+          board
+        else
+          Map.delete(board, en_passant_pawn_cell)
+        end
+
+      _ ->
+        board
     end
   end
 

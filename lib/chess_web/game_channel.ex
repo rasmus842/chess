@@ -24,21 +24,21 @@ defmodule ChessWeb.GameChannel do
     with {:ok, move} <- parse_move(payload),
          {:ok, params} <- parse_params(payload),
          {:ok, new_state} <- GameServer.make_move(game_id, move, params) do
-      broadcast!(socket, "move_made", new_state)
-      {:reply, {:ok, "move accepted"}, socket}
+      broadcast!(socket, "move", new_state)
+      {:reply, {:ok, new_state}, socket}
     else
       {:error, _reason} = err ->
         {:reply, err, socket}
     end
   end
 
-  def handle_in("get_state", _payload, socket) do
+  def handle_in("get_game", _payload, socket) do
     game_id = socket.assigns.game_id
 
     case GameManager.ensure_started(game_id) do
       {:ok, _pid} ->
-        state = GameServer.get_state(game_id)
-        {:reply, {:ok, state}, socket}
+        game = GameServer.get_game(game_id)
+        {:reply, {:ok, game}, socket}
 
       {:error, :not_found} ->
         {:reply, {:error, %{reason: "game_not_found"}}, socket}
@@ -61,13 +61,22 @@ defmodule ChessWeb.GameChannel do
   end
 
   defp parse_params(payload) when is_map(payload) do
-    with {:ok, player} <- Map.fetch(payload, "player"),
+    with {:ok, player} <- parse_player(payload),
          pawn_promotion <- Map.get(payload, "pawn_promotion"),
          promote_kind <- Utils.parse_kind(pawn_promotion),
          params <- %{player: player, pawn_promotion: promote_kind} do
       {:ok, params}
     else
       {:error, _reason} = err -> err
+    end
+  end
+
+  # TODO: we should use player's UUID and infer color from that
+  defp parse_player(payload) when is_map(payload) do
+    case Map.get(payload, "player") do
+      "white" -> {:ok, :white}
+      "black" -> {:ok, :black}
+      p -> {:error, "Invalid player #{p}"}
     end
   end
 end
