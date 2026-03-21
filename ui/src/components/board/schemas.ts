@@ -27,7 +27,7 @@ export const BoardSchema = z.partialRecord(CellSchema, PieceSchema);
 
 export const GamePropsSchema = z.object({
   player: PlayerSchema,
-  active_en_passant: z.tuple([CellSchema, CellSchema]).nullable(),
+  active_en_passant: z.object({ pawn: CellSchema, target: CellSchema }).nullable(),
   white_king: CellSchema.nullable(),
   black_king: CellSchema.nullable(),
   white_king_moved: z.boolean(),
