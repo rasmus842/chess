@@ -1,6 +1,6 @@
 defmodule Chess.GameServer do
   use GenServer
-alias Chess.GameManager
+  alias Chess.GameManager
   use Chess.Game.Helper
 
   @type game_id :: String.t()
@@ -18,7 +18,7 @@ alias Chess.GameManager
   end
 
   def via(game_id), do: {:via, Registry, {Chess.GameRegistry, game_id}}
-  
+
   @spec get_game(game_id()) :: GameManager.game()
   def get_game(game_id) do
     GenServer.call(via(game_id), :get_game)

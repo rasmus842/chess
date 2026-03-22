@@ -22,6 +22,7 @@ defmodule Chess.Game.CheckMateTest do
              checks: %{{?h, 1} => checkers}
            } =
              state
+
     assert Enum.empty?(moves)
     assert MapSet.member?(checkers, {?h, 3})
 
@@ -38,11 +39,11 @@ defmodule Chess.Game.CheckMateTest do
              checks: checks
            } =
              state
+
     assert Enum.empty?(moves)
     assert Enum.empty?(checks)
 
     assert {:error, _} = chain_moves(state, [{{?h, 1}, {?g, 1}}])
     assert {:stale_mate} = WinCondition.get_winner(state)
   end
-
 end

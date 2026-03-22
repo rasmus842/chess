@@ -43,11 +43,11 @@ defmodule Chess.Game.KingMoveTest do
   end
 
   @king_takes_board %{
-        {?e, 1} => {:white, :king},
-        {?e, 2} => {:black, :pawn},
-        {?f, 1} => {:black, :knight},
-        {?e, 8} => {:black, :king},
-        {?d, 8} => {:white, :bishop}
+    {?e, 1} => {:white, :king},
+    {?e, 2} => {:black, :pawn},
+    {?f, 1} => {:black, :knight},
+    {?e, 8} => {:black, :king},
+    {?d, 8} => {:white, :bishop}
   }
 
   describe "King takes" do

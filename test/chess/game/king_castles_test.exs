@@ -8,7 +8,8 @@ defmodule Chess.Game.KingCastlesTest do
         {?a, 1} => {:white, :rook},
         {?d, 1} => {:white, :queen},
         {?h, 1} => {:white, :rook},
-        {?d, 4} => {:white, :pawn}, # this blocks check
+        # this blocks check
+        {?d, 4} => {:white, :pawn},
         {?e, 8} => {:black, :king},
         {?a, 8} => {:black, :rook},
         {?b, 8} => {:black, :knight},
@@ -75,7 +76,7 @@ defmodule Chess.Game.KingCastlesTest do
       move = {{?e, 8}, {?g, 8}}
       assert_move_is_error(altered_board, move)
     end
-    
+
     test "Black cannot castle if path is checked by pawn", %{board: board} do
       altered_board = Map.put(board, {?e, 7}, {:white, :pawn})
       move = {{?e, 8}, {?g, 8}}
@@ -101,9 +102,9 @@ defmodule Chess.Game.KingCastlesTest do
       state = GameState.new(board: board, player: :white)
 
       moves = [
-        _move_white_rook = {{?h, 1}, {?h, 2}}, 
-        _move_black_king = {{?e, 8}, {?d, 8}}, 
-        _move_white_rook_back = {{?h, 2}, {?h, 1}}, 
+        _move_white_rook = {{?h, 1}, {?h, 2}},
+        _move_black_king = {{?e, 8}, {?d, 8}},
+        _move_white_rook_back = {{?h, 2}, {?h, 1}},
         _move_black_king_back = {{?d, 8}, {?e, 8}}
       ]
 
