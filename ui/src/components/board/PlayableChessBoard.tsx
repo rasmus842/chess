@@ -3,11 +3,10 @@ import {
   useDraggable,
   useDroppable,
   type DragEndEvent,
-  type DragStartEvent,
 } from "@dnd-kit/core";
 import { files, ranks } from "./schemas";
-import { type Board, type Cell, type GameState, type Piece } from "./types";
-import { initial_board, isLightSquare } from "./utils";
+import { type Cell, type GameState, type Piece } from "./types";
+import { isLightSquare } from "./utils";
 import { CSS } from "@dnd-kit/utilities";
 
 type SquareProps = {
@@ -85,7 +84,7 @@ type ChessBoardProps = {
 };
 
 export default function PlayableChessBoard({ state, onMove }: ChessBoardProps) {
-  const { board, possible_moves, checks } = state;
+  const { board, possible_moves } = state;
 
   const handleDragEnd = (event: DragEndEvent) => {
     console.log("handleDragEnd");

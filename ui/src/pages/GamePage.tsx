@@ -1,5 +1,4 @@
 import { useParams } from "react-router-dom";
-import ChessBoard from "../components/board/ChessBoard";
 import { useChannel, useChannelEvent } from "../hooks/useChannel";
 import { type Cell, type GameState } from "@/components/board/types";
 import { useCallback, useEffect, useState } from "react";
