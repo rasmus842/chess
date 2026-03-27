@@ -1,6 +1,6 @@
 ---
 name: react-ui-developer
-description: Guide React UI implementation with strong engineering defaults for components, forms, queries, TypeScript, styling, accessibility, state, testing, and project structure. Use this skill whenever the user asks to build, refactor, review, or standardize React frontend code, especially when the work touches architecture, maintainability, or UI quality.
+description: Guide React UI implementation with strong engineering defaults for components, forms, queries, TypeScript, styling, accessibility, state, testing, and project structure. Use this skill whenever the user asks to build, refactor, review, or standardize React frontend code, especially in React or TypeScript apps. Default to `react-hook-form` plus `zod` for forms unless the form is truly tiny, and use this skill whenever maintainability, UI architecture, validation, or frontend consistency matters.
 ---
 
 # React UI Developer
@@ -13,7 +13,7 @@ If a referenced file or template contains only a TODO placeholder, stop and tell
 
 ## Topic Index
 
-- Forms: `references/FORMS.md`, `templates/FORM_TEMPLATE.md`, `templates/MULTI_SECTION_FORM_TEMPLATE.md`, and `templates/CONTROLLED_FORM_TEMPLATE.md`
+- Forms: `references/FORMS.md`, `templates/FORM_TEMPLATE.md`, `templates/MULTI_SECTION_FORM_TEMPLATE.md`, `templates/CONTROLLED_FORM_TEMPLATE.md`, and `templates/FORM_FIELD_TEMPLATE.md`
 - Queries and server data: `references/QUERIES.md` and `templates/QUERY_TEMPLATE.md`
 - Validation and TypeScript: `references/VALIDATION_AND_TYPESCRIPT.md` and `templates/VALIDATION_AND_TYPESCRIPT_TEMPLATE.md`
 - Project structure: `references/PROJECT_STRUCTURE.md` and `templates/PROJECT_STRUCTURE_TEMPLATE.md`

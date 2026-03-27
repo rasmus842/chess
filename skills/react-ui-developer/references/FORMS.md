@@ -54,6 +54,7 @@ Good defaults:
 - Use `FormProvider` and `useFormContext` when the form is split into nested sections.
 - Use `Controller` only when a third-party input cannot work with plain `register`.
 - Do not mirror form state into local component state unless the UI truly needs separate derived behavior.
+- When using shared field wrappers, prefer passing the full React Hook Form error object rather than only `error.message`, so the wrapper can own consistent error rendering and ARIA wiring.
 
 ## Submission Lifecycle
 
@@ -113,3 +114,4 @@ Do not introduce complex abstractions too early.
 - Baseline form: `templates/FORM_TEMPLATE.md`
 - Multi-section form: `templates/MULTI_SECTION_FORM_TEMPLATE.md`
 - Controlled custom input form: `templates/CONTROLLED_FORM_TEMPLATE.md`
+- Reusable form field pattern: `templates/FORM_FIELD_TEMPLATE.md`
