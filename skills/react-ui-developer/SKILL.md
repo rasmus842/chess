@@ -13,7 +13,7 @@ If a referenced file or template contains only a TODO placeholder, stop and tell
 
 ## Topic Index
 
-- Forms: `references/FORMS.md` and `templates/FORM_TEMPLATE.md`
+- Forms: `references/FORMS.md`, `templates/FORM_TEMPLATE.md`, `templates/MULTI_SECTION_FORM_TEMPLATE.md`, and `templates/CONTROLLED_FORM_TEMPLATE.md`
 - Queries and server data: `references/QUERIES.md` and `templates/QUERY_TEMPLATE.md`
 - Validation and TypeScript: `references/VALIDATION_AND_TYPESCRIPT.md` and `templates/VALIDATION_AND_TYPESCRIPT_TEMPLATE.md`
 - Project structure: `references/PROJECT_STRUCTURE.md` and `templates/PROJECT_STRUCTURE_TEMPLATE.md`
