@@ -82,7 +82,9 @@ function ProfileSection() {
         aria-invalid={errors.profile?.firstName ? "true" : "false"}
         {...register("profile.firstName")}
       />
-      {errors.profile?.firstName ? <p>{errors.profile.firstName.message}</p> : null}
+      {errors.profile?.firstName ? (
+        <p>{errors.profile.firstName.message}</p>
+      ) : null}
 
       <label htmlFor="lastName">Last name</label>
       <input
@@ -90,7 +92,9 @@ function ProfileSection() {
         aria-invalid={errors.profile?.lastName ? "true" : "false"}
         {...register("profile.lastName")}
       />
-      {errors.profile?.lastName ? <p>{errors.profile.lastName.message}</p> : null}
+      {errors.profile?.lastName ? (
+        <p>{errors.profile.lastName.message}</p>
+      ) : null}
     </section>
   );
 }

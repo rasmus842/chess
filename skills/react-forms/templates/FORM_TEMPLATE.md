@@ -45,6 +45,7 @@ export function ProfileForm() {
   const onSubmit = async (values: ProfileFormValues) => {
     setServerError(null);
 
+    // POST to server
     const response = await fetch("/api/profile", {
       method: "POST",
       headers: {
