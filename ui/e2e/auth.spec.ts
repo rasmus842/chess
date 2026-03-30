@@ -9,10 +9,10 @@ test.describe("auth flow", () => {
     await page.goto("/auth/signup");
     await page.getByLabel("Username").fill("rookie99");
     await page.getByLabel("Email").fill("rookie99@example.com");
-    await page.getByRole("button", { name: "Create account" }).click();
+    await page.getByRole("button", { name: "Sign up" }).click();
 
     await expect(page).toHaveURL(/\/auth\/verify$/);
-    await expect(page.getByRole("heading", { name: "Verify your account" })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Verify" })).toBeVisible();
   });
 
   test("login success redirects to verify", async ({ page }) => {
@@ -22,10 +22,10 @@ test.describe("auth flow", () => {
 
     await page.goto("/auth/login");
     await page.getByLabel("Username or email").fill("rookie99@example.com");
-    await page.getByRole("button", { name: "Continue" }).click();
+    await page.getByRole("button", { name: "Login" }).click();
 
     await expect(page).toHaveURL(/\/auth\/verify$/);
-    await expect(page.getByRole("heading", { name: "Verify your account" })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Verify" })).toBeVisible();
   });
 
   test("verify failure stays on page and shows generic inline error", async ({ page }) => {
@@ -37,7 +37,7 @@ test.describe("auth flow", () => {
     await page.getByLabel("Username").fill("rookie99");
     await page.getByLabel("Email").fill("rookie99@example.com");
     await page.getByLabel("Verification code").fill("123456");
-    await page.getByRole("button", { name: "Verify account" }).click();
+    await page.getByRole("button", { name: "Verify" }).click();
 
     await expect(page).toHaveURL(/\/auth\/verify$/);
     await expect(page.getByText("Invalid verification code.")).toBeVisible();
@@ -52,7 +52,7 @@ test.describe("auth flow", () => {
     await page.getByLabel("Username").fill("rookie99");
     await page.getByLabel("Email").fill("rookie99@example.com");
     await page.getByLabel("Verification code").fill("123456");
-    await page.getByRole("button", { name: "Verify account" }).click();
+    await page.getByRole("button", { name: "Verify" }).click();
 
     await expect(page).toHaveURL(/\/$/);
     await expect(page.getByRole("heading", { name: "Chess app" })).toBeVisible();
