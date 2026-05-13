@@ -22,7 +22,7 @@ defmodule Chess.Repo.Migrations.CreateSmoothAuthTables do
       timestamps(updated_at: false)
     end
 
-    create unique_index(:smooth_auth_sessions, [:token_hash])
-    create index(:smooth_auth_sessions, [:user_id])
+    create unique_index(:session, [:token_hash])
+    create index(:session, [:user_id])
   end
 end

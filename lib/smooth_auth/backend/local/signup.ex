@@ -3,13 +3,13 @@ defmodule SmoothAuth.Backend.Local.Signup do
   Holds session and signup request data in a a GenServer process state as two maps
   """
 
-  alias SmoothAuth.Signup.Service
   alias SmoothAuth.Signup.Request
   alias SmoothAuth.Signup.Verification
   alias SmoothAuth.Signup.VerificationCode
   alias SmoothAuth.Signup.CacheAdapter, as: SignupCache
-
-  @behaviour Service
+  alias SmoothAuth.Backend.Local.Accounts
+  
+  @behaviour SmoothAuth.Signup.Service
 
   @impl true
   def new_signup(request = %Request{}) do
@@ -27,11 +27,13 @@ defmodule SmoothAuth.Backend.Local.Signup do
         code: code
       }) do
     with {:ok, {^req, correct_code}} <- SignupCache.get_existing(req),
-         true <- code === correct_code do
-      {:ok, nil}
+         true <- code === correct_code,
+         {:ok, user} <- Accounts.create_new_account(req) do
+      {:ok, user}
     else
       {:error, :not_found} -> {:error, :invalid_signup_request}
       false -> {:error, :invalid_verification_code}
+      {:error, _validation_errors} -> {:error, :invalid_signup_request}
     end
   end
 end

@@ -51,14 +51,14 @@ defmodule SmoothAuth.Backend.Local.InMemorySignups do
     case params do
       {:verify_not_exists, req} when is_struct(req) ->
         case Map.get(requests, req) do
-          nil -> :ok
-          _code -> {:error, :duplicate_key}
+          nil -> {:ok, requests}
+          _code -> {{:error, :duplicate_key}, requests}
         end
 
       {:get_existing, req} when is_struct(req) ->
         case Map.get(requests, req) do
-          nil -> {:error, :not_found}
-          code -> {:ok, {req, code}}
+          nil -> {{:error, :not_found}, requests}
+          code -> {{:ok, {req, code}}, requests}
         end
 
       {:put, req, code} when is_struct(req) and is_binary(code) ->
