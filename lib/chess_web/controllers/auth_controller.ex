@@ -3,7 +3,7 @@ defmodule ChessWeb.AuthController do
 
   def request_signup(conn, %{"email" => email, "username" => username}) do
     case SmoothAuth.request_signup(email, username) do
-      {:ok, :accepted} ->
+      :ok ->
         conn
         |> put_status(:accepted)
         |> json(%{status: "ok"})

@@ -1,16 +1,16 @@
 defmodule ChessWeb.Endpoint do
   use Phoenix.Endpoint, otp_app: :chess
+  
+  # TODO:
+  # Always HTTPS, HSTS (Set-Secure-Transport header)
+  # CSRF (custom X-CSRF-TOKEN header)
 
-  # The session will be stored in the cookie and signed,
-  # this means its contents can be read but not tampered with.
-  # Set :encryption_salt if you would also like to encrypt it.
-  @session_options [
-    store: :cookie,
-    key: "_chess_key",
-    signing_salt: "+1qeo+1c",
-    same_site: "Lax"
-  ]
-
+  # TODO:
+  # websocket security (security token + csrf token)
+  # Dynamically authenticatable websocket connections?
+  # Incoming and outgoing events:
+  # both: Verify subject exists? If not then reject?
+  # Reject with redirect or error?
   socket "/socket", ChessWeb.UserSocket,
     websocket: true,
     longpoll: false
@@ -29,5 +29,6 @@ defmodule ChessWeb.Endpoint do
     json_decoder: Phoenix.json_library()
 
   plug Plug.Head
+  plug SmoothAuth.Plugs.FetchSubject
   plug ChessWeb.Router
 end

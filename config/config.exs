@@ -11,6 +11,17 @@ config :chess,
   ecto_repos: [Chess.Repo],
   generators: [timestamp_type: :utc_datetime]
 
+config :smooth_auth, SmoothAuth,
+  backend: SmoothAuth.Backend.Local,
+  signup_cache: SmoothAuth.Backend.Local.InMemorySignups,
+  delivery_adapter: SmoothAuth.Delivery.Mailer,
+  access_token_salt: "smooth-auth-access",
+  access_token_ttl_seconds: 900,
+  refresh_token_ttl_seconds: 60 * 60 * 24 * 30,
+  challenge_ttl_seconds: 600,
+  challenge_max_attempts: 5,
+  email_from: {"Chess", "no-reply@chess.local"}
+
 # Configures the endpoint
 config :chess, ChessWeb.Endpoint,
   url: [host: "localhost"],

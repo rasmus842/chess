@@ -9,7 +9,7 @@ defmodule SmoothAuth do
           subject: Subject.t()
         }
 
-  @config Application.compile_env(:chess, SmoothAuth)
+  @config Application.compile_env(:smooth_auth, SmoothAuth)
   @backend Keyword.fetch!(@config, :backend)
 
   @spec request_signup(String.t(), String.t()) :: :ok | {:error, term()}
