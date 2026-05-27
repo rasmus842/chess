@@ -8,5 +8,4 @@ defmodule SmoothAuth.Account do
     field :email, String.t(), enforce: true
     field :username, String.t(), enforce: true
   end
-
 end

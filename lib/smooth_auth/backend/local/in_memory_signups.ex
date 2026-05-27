@@ -3,7 +3,9 @@ defmodule SmoothAuth.Backend.Local.InMemorySignups do
 
   @behaviour SmoothAuth.Signup.Cache
 
-  def start_link() do
+  alias SmoothAuth.Signup.Request
+
+  def start_link(_opts \\ []) do
     GenServer.start_link(__MODULE__, :ok, name: __MODULE__)
   end
 
@@ -18,8 +20,8 @@ defmodule SmoothAuth.Backend.Local.InMemorySignups do
   end
 
   @impl true
-  def get_existing(request) do
-    call({:get_existing, request})
+  def get_by_email(email) do
+    call({:get_by_email, email})
   end
 
   @impl true
@@ -28,13 +30,13 @@ defmodule SmoothAuth.Backend.Local.InMemorySignups do
   end
 
   @impl true
-  def delete(request) do
-    call({:delete, request})
+  def delete_by_email(email) do
+    call({:delete_by_email, email})
   end
 
   @impl true
-  def delete_all(requests) do
-    call({:delete_all, requests})
+  def delete_all(emails) do
+    call({:delete_all, emails})
   end
 
   defp call(params) do
@@ -49,28 +51,28 @@ defmodule SmoothAuth.Backend.Local.InMemorySignups do
 
   defp handle(params, requests) do
     case params do
-      {:verify_not_exists, req} when is_struct(req) ->
-        case Map.get(requests, req) do
+      {:verify_not_exists, %Request{email: email}} ->
+        case Map.get(requests, email) do
           nil -> {:ok, requests}
-          _code -> {{:error, :duplicate_key}, requests}
+          {_request, _code} -> {{:error, :duplicate}, requests}
         end
 
-      {:get_existing, req} when is_struct(req) ->
-        case Map.get(requests, req) do
+      {:get_by_email, email} when is_binary(email) ->
+        case Map.get(requests, email) do
           nil -> {{:error, :not_found}, requests}
-          code -> {{:ok, {req, code}}, requests}
+          {request, code} -> {{:ok, {request, code}}, requests}
         end
 
-      {:put, req, code} when is_struct(req) and is_binary(code) ->
-        updated_requests = Map.put(requests, req, code)
+      {:put, %Request{email: email} = request, code} when is_binary(code) ->
+        updated_requests = Map.put(requests, email, {request, code})
         {:ok, updated_requests}
 
-      {:delete, req} when is_struct(req) ->
-        updated_requests = Map.delete(requests, req)
+      {:delete_by_email, email} when is_binary(email) ->
+        updated_requests = Map.delete(requests, email)
         {:ok, updated_requests}
 
-      {:delete_all, req_list} when is_list(req_list) ->
-        updated_requests = Map.drop(requests, req_list)
+      {:delete_all, emails} when is_list(emails) ->
+        updated_requests = Map.drop(requests, emails)
         {:ok, updated_requests}
     end
   end

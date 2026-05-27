@@ -13,7 +13,7 @@ defmodule SmoothAuth.Backend.Local.Accounts do
 
   @impl true
   def get_account(account_id) do
-    case Users.get_by_id(User, account_id) do
+    case Users.get_by_id(account_id) do
       nil -> {:error, :not_found}
       user -> {:ok, map_to_account(user)}
     end

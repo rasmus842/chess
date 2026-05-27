@@ -8,15 +8,14 @@ defmodule SmoothAuth.Signup.CacheAdapter do
   defdelegate verify_not_exists(request), to: @implementation
 
   @impl true
-  defdelegate get_existing(request), to: @implementation
-  
+  defdelegate get_by_email(email), to: @implementation
+
   @impl true
   defdelegate put(request, code), to: @implementation
-  
+
   @impl true
-  defdelegate delete(request), to: @implementation
-  
+  defdelegate delete_by_email(email), to: @implementation
+
   @impl true
-  defdelegate delete_all(requests), to: @implementation
-  
+  defdelegate delete_all(emails), to: @implementation
 end
