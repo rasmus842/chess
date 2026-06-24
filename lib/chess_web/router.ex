@@ -19,6 +19,8 @@ defmodule ChessWeb.Router do
 
       post "/login/request", AuthController, :request_login
       post "/login/verify", AuthController, :verify_login
+      post "/refresh", AuthController, :refresh
+      post "/logout", AuthController, :logout
     end
 
     post "/game", GameController, :create
@@ -35,7 +37,5 @@ defmodule ChessWeb.Router do
     pipe_through :authenticated_api
 
     get "/auth/me", AuthController, :me
-    post "/auth/refresh", AuthController, :refresh
-    post "/auth/logout", AuthController, :logout
   end
 end
