@@ -1,24 +1,16 @@
 defmodule SmoothAuth.Session do
   @moduledoc false
 
-  use Ecto.Schema
-  import Ecto.Changeset
+  use TypedStruct
 
-  schema "session" do
-    field :token_hash, :string
-    field :expires_at, :utc_datetime_usec
-    field :revoked_at, :utc_datetime_usec
-    field :replaced_by_token_hash, :string
+  alias SmoothAuth.Subject
 
-    belongs_to :user, SmoothAuth.User
+  @type session_id :: String.t()
 
-    timestamps(updated_at: false)
-  end
-
-  def changeset(session, attrs) do
-    session
-    |> cast(attrs, [:user_id, :token_hash, :expires_at, :revoked_at, :replaced_by_token_hash])
-    |> validate_required([:user_id, :token_hash, :expires_at])
-    |> unique_constraint(:token_hash)
+  typedstruct do
+    field :session_id, session_id(), enforce: true
+    field :subject, Subject.t(), enforce: true
+    field :created_at, DateTime.t(), enforce: true
+    field :expires_at, DateTime.t(), enforce: true
   end
 end

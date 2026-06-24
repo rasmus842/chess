@@ -7,6 +7,6 @@ defmodule SmoothAuth.Subject do
   @type t :: %__MODULE__{
           user_id: integer(),
           email: String.t(),
-          username: String.t(),
+          username: String.t()
         }
 end

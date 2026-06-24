@@ -1,32 +1,22 @@
 defmodule SmoothAuth.Backend do
   @moduledoc false
 
-  alias SmoothAuth.Subject
+  alias SmoothAuth.{Account, Session, Subject}
+  alias SmoothAuth.Signup.{Request, Verification}
 
-  @type email :: String.t()
-  @type username :: String.t()
-  @type verification_code :: String.t()
+  @callback request_signup(Request.t()) :: :ok | {:error, term()}
+  
+  @callback verify_signup(Verification.t()) :: {:ok, Account.t()} | {:error, term()}
 
-  @type session_id :: String.t()
+  @callback request_login(String.t()) :: {:ok, :accepted} | {:error, term()}
+  
+  @callback verify_login(String.t(), String.t()) :: {:ok, Session.t()} | {:error, term()}
 
-  @type session :: %{
-          session_id: session_id(),
-          subject: Subject.t()
-        }
+  @callback refresh_session(Session.session_id()) :: {:ok, Session.t()} | {:error, term()}
 
-  @callback request_signup(email(), username()) :: :ok | {:error, term()}
+  @callback logout(Session.session_id()) :: :ok | {:error, term()}
 
-  @callback verify_signup_code(email(), username(), verification_code()) ::
-              {:ok, session()} | {:error, term()}
+  @callback authenticate(Session.session_id()) :: {:ok, Subject.t()} | {:error, term()}
 
-  @callback request_login(email()) :: :ok | {:error, term()}
-
-  @callback verify_login_code(email(), verification_code()) ::
-              {:ok, session()} | {:error, term()}
-
-  @callback refresh_session(session_id()) :: {:ok, session()} | {:error, term()}
-
-  @callback logout(session_id()) :: :ok | {:error, term()}
-
-  @callback authenticate(session_id()) :: {:ok, Subject.t()} | {:error, term()}
+  @callback me(Session.session_id()) :: {:ok, Account.t()} | {:error, term()}
 end
