@@ -1,6 +1,6 @@
 defmodule ChessWeb.Endpoint do
   use Phoenix.Endpoint, otp_app: :chess
-  
+
   # TODO:
   # Always HTTPS, HSTS (Set-Secure-Transport header)
   # CSRF (custom X-CSRF-TOKEN header)

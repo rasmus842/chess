@@ -14,6 +14,9 @@ defmodule Chess.Application do
       {Phoenix.PubSub, name: Chess.PubSub},
       # Start the Finch HTTP client for sending emails
       {Finch, name: Chess.Finch},
+      SmoothAuth.Backend.Local.InMemorySignups,
+      SmoothAuth.Backend.Local.InMemoryLogins,
+      SmoothAuth.Backend.Local.InMemorySessions,
       # Start a worker by calling: Chess.Worker.start_link(arg)
       # {Chess.Worker, arg},
       # Start to serve requests, typically the last entry
